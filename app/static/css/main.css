@@ -1,0 +1,339 @@
+/*
+  main.css — Trusted Advisor design system
+  ─────────────────────────────────────────
+  Palette: slate + signal amber. No frameworks.
+  Trust is earned quietly — the UI reflects that: minimal chrome,
+  data-forward, zero decorative noise.
+*/
+
+/* ── Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Tokens ─────────────────────────────────────────────────── */
+:root {
+  /* Slate scale */
+  --slate-950: #0C0F14;
+  --slate-900: #141820;
+  --slate-800: #1E2433;
+  --slate-700: #2C3347;
+  --slate-600: #3D4663;
+  --slate-400: #8892A4;
+  --slate-200: #C8CFD8;
+  --slate-100: #E8EBF0;
+  --slate-050: #F4F6F9;
+
+  /* Signal amber — the one accent, used sparingly */
+  --amber:     #F59E0B;
+  --amber-dim: #92610A;
+
+  /* Trust score colours */
+  --score-high:   #10B981;   /* emerald */
+  --score-mid:    #F59E0B;   /* amber */
+  --score-low:    #EF4444;   /* red */
+
+  /* Semantic */
+  --bg:         var(--slate-050);
+  --bg-card:    #FFFFFF;
+  --bg-sidebar: var(--slate-900);
+  --text-primary:   var(--slate-950);
+  --text-secondary: var(--slate-600);
+  --text-muted:     var(--slate-400);
+  --border:     var(--slate-100);
+  --border-mid: var(--slate-200);
+
+  /* Typography */
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* Layout */
+  --sidebar-w: 220px;
+  --radius:    6px;
+  --radius-lg: 12px;
+}
+
+/* ── Base ────────────────────────────────────────────────────── */
+html { font-size: 15px; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text-primary);
+  display: flex;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+a { color: inherit; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Sidebar ─────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-height: 100vh;
+  background: var(--bg-sidebar);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  position: fixed;
+  top: 0; left: 0;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.brand-mark {
+  width: 30px; height: 30px;
+  background: var(--amber);
+  color: var(--slate-950);
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+  letter-spacing: 0.01em;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.nav-link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  color: rgba(255,255,255,0.55);
+  transition: background 0.12s, color 0.12s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.9);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  background: rgba(245,158,11,0.15);
+  color: var(--amber);
+}
+
+.sidebar-footer {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ── Main content ────────────────────────────────────────────── */
+.main-content {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  padding: 2rem 2.5rem;
+  max-width: 1100px;
+}
+
+/* ── Page header ─────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  gap: 1rem;
+}
+
+.page-title {
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+/* ── Cards ───────────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.card + .card { margin-top: 1rem; }
+
+/* ── Trust score badge ───────────────────────────────────────── */
+.trust-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 100px;
+}
+
+.trust-score--high { background: #ECFDF5; color: var(--score-high); }
+.trust-score--mid  { background: #FFFBEB; color: var(--amber-dim); }
+.trust-score--low  { background: #FEF2F2; color: var(--score-low); }
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.12s, background 0.12s;
+  text-decoration: none;
+}
+
+.btn:hover { opacity: 0.85; text-decoration: none; }
+
+.btn-primary  { background: var(--slate-900); color: #fff; }
+.btn-amber    { background: var(--amber);     color: var(--slate-950); }
+.btn-ghost    { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-mid); }
+.btn-danger   { background: #FEF2F2; color: var(--score-low); }
+.btn-sm       { padding: 0.3rem 0.7rem; font-size: 12.5px; }
+
+/* ── Forms ───────────────────────────────────────────────────── */
+.field { margin-bottom: 1rem; }
+
+label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--border-mid);
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: 14px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  transition: border-color 0.12s, box-shadow 0.12s;
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+}
+
+textarea { resize: vertical; min-height: 100px; }
+
+/* ── Tables ──────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+
+th {
+  text-align: left;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--slate-050); }
+
+/* ── Flash messages ──────────────────────────────────────────── */
+.flash {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 1rem;
+  font-size: 13.5px;
+}
+
+.flash--success { background: #ECFDF5; color: #065F46; }
+.flash--error   { background: #FEF2F2; color: #991B1B; }
+.flash--info    { background: #EFF6FF; color: #1E40AF; }
+
+/* ── Discovery layer indicator ───────────────────────────────── */
+.layer-dots { display: flex; gap: 4px; }
+
+.layer-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border-mid);
+}
+
+.layer-dot.reached { background: var(--amber); }
+
+/* ── AI draft banner ─────────────────────────────────────────── */
+.ai-draft-banner {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  font-size: 13px;
+  color: var(--amber-dim);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* ── Utility ─────────────────────────────────────────────────── */
+.text-muted   { color: var(--text-muted); }
+.text-sm      { font-size: 12.5px; }
+.text-right   { text-align: right; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.flex { display: flex; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+.gap-1 { gap: 0.5rem; }
+.gap-2 { gap: 1rem; }
+
+/* ── HTMX loading indicator ──────────────────────────────────── */
+.htmx-indicator { opacity: 0; transition: opacity 0.2s; }
+.htmx-request .htmx-indicator { opacity: 1; }

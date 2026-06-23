@@ -1,0 +1,28 @@
+# --- Web framework ---
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+
+# --- Templating + forms ---
+jinja2==3.1.4
+python-multipart==0.0.9      # required for form parsing in FastAPI
+
+# --- Database ---
+sqlalchemy==2.0.35
+aiosqlite==0.20.0            # async SQLite driver
+alembic==1.13.2              # schema migrations
+
+# --- Auth ---
+python-jose[cryptography]==3.3.0   # JWT tokens
+passlib[bcrypt]==1.7.4             # password hashing
+
+# --- AI providers ---
+anthropic==0.34.2
+openai==1.47.0
+
+# --- Validation ---
+pydantic==2.9.2
+pydantic-settings==2.5.2     # settings from .env
+
+# --- Utilities ---
+python-dotenv==1.0.1
+httpx==0.27.2                # async HTTP (used in ai_service)

@@ -1,0 +1,12 @@
+.env
+*.db
+*.db-journal
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+.DS_Store
+alembic/versions/*.py
+!alembic/versions/.gitkeep
