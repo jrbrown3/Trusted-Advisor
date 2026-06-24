@@ -1,0 +1,61 @@
+{% extends "auth_base.html" %}
+{% block title %}Set up — Trusted Advisor{% endblock %}
+
+{% block content %}
+<div class="auth-panel">
+  <h1 class="auth-title">Welcome — let's set up your account</h1>
+  <p class="auth-sub">This is a fresh install. Create the first account to get started. You'll be signed in straight away.</p>
+
+  {% if error %}<div class="auth-error">{{ error }}</div>{% endif %}
+
+  <form method="post" action="/setup">
+    <div class="field">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" value="{{ form.username or '' }}" autofocus required>
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" value="{{ form.email or '' }}" required>
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+      <p class="text-sm text-muted" style="margin-top: 0.3rem;">At least 8 characters.</p>
+    </div>
+    <div class="field">
+      <label for="confirm_password">Confirm password</label>
+      <input type="password" id="confirm_password" name="confirm_password" required>
+    </div>
+    <button type="submit" class="btn btn-amber" style="width: 100%; justify-content: center; margin-top: 0.5rem;">Create account &amp; continue</button>
+  </form>
+
+  <!-- Environment / configuration status -->
+  <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
+    <p class="text-sm" style="font-weight: 600; margin-bottom: 0.6rem;">Environment</p>
+    <div class="cfg-row">
+      <span class="cfg-key">AI provider</span>
+      <span class="cfg-val">{{ config.provider }} · {{ config.model }}</span>
+    </div>
+    <div class="cfg-row">
+      <span class="cfg-key">API key</span>
+      {% if config.key_set %}
+      <span class="cfg-val cfg-ok">configured</span>
+      {% else %}
+      <span class="cfg-val cfg-warn">not set — add it to .env</span>
+      {% endif %}
+    </div>
+    {% if not config.key_set %}
+    <p class="text-sm text-muted" style="margin-top: 0.6rem;">You can still set up your account now. AI features (debrief, agenda, forecast) need the {{ config.provider }} key in your <code>.env</code> before they'll work.</p>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .cfg-row { display: flex; justify-content: space-between; align-items: center; padding: 0.35rem 0; font-size: 13px; }
+  .cfg-key { color: var(--text-muted); }
+  .cfg-val { font-weight: 500; }
+  .cfg-ok { color: var(--score-high); }
+  .cfg-warn { color: var(--amber-dim); }
+  code { background: var(--slate-100); padding: 0.05rem 0.3rem; border-radius: 4px; font-size: 12px; }
+</style>
+{% endblock %}

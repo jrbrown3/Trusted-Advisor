@@ -14,7 +14,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -25,7 +25,8 @@ from app.database import engine, Base
 import app.models  # noqa: F401
 
 # Routers (stubs for now — filled in per phase)
-from app.routers import auth, contacts, interactions, insights, actions, dashboard
+from app.routers import auth, setup, contacts, interactions, insights, actions, dashboard
+from app.dependencies import RequiresSetup, RequiresLogin
 
 
 # ── Lifespan ─────────────────────────────────────────────────
@@ -67,6 +68,7 @@ templates = Jinja2Templates(directory=Path(__file__).parent / "templates")
 # ── Routers ───────────────────────────────────────────────────
 
 app.include_router(auth.router,         prefix="/auth",         tags=["auth"])
+app.include_router(setup.router,                                tags=["setup"])
 app.include_router(contacts.router,     prefix="/contacts",     tags=["contacts"])
 app.include_router(interactions.router, prefix="/interactions", tags=["interactions"])
 app.include_router(insights.router,     prefix="/insights",     tags=["insights"])
@@ -78,6 +80,16 @@ app.include_router(dashboard.router,                            tags=["dashboard
 
 
 # ── Exception handlers ────────────────────────────────────────
+
+@app.exception_handler(RequiresSetup)
+async def _requires_setup(request: Request, exc):
+    return RedirectResponse(url="/setup", status_code=303)
+
+
+@app.exception_handler(RequiresLogin)
+async def _requires_login(request: Request, exc):
+    return RedirectResponse(url="/auth/login", status_code=303)
+
 
 @app.exception_handler(404)
 async def not_found(request: Request, exc):
