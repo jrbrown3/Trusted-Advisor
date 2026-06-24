@@ -78,7 +78,7 @@ app.include_router(dashboard.router,                            tags=["dashboard
 
 @app.get("/", include_in_schema=False)
 async def root(request: Request):
-    return templates.TemplateResponse("pages/dashboard.html", {"request": request})
+    return templates.TemplateResponse(request, "pages/dashboard.html")
 
 
 # ── Exception handlers ────────────────────────────────────────
@@ -86,5 +86,5 @@ async def root(request: Request):
 @app.exception_handler(404)
 async def not_found(request: Request, exc):
     return templates.TemplateResponse(
-        "pages/404.html", {"request": request}, status_code=404
+        request, "pages/404.html", status_code=404
     )

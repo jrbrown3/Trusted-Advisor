@@ -37,13 +37,14 @@
 
   <!-- Main content area -->
   <main class="main-content">
-    <!-- Flash messages (HTMX-friendly) -->
+    <!-- Flash messages (HTMX-friendly).
+         `messages` is an optional list of {category, text} dicts passed
+         in the template context. FastAPI has no built-in flash, so routes
+         pass this explicitly when needed. -->
     <div id="flash-region" aria-live="polite">
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% for category, message in messages %}
-          <div class="flash flash--{{ category }}">{{ message }}</div>
-        {% endfor %}
-      {% endwith %}
+      {% for msg in messages | default([]) %}
+        <div class="flash flash--{{ msg.category }}">{{ msg.text }}</div>
+      {% endfor %}
     </div>
 
     {% block content %}{% endblock %}
