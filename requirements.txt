@@ -15,7 +15,7 @@ aiosqlite==0.22.1             # async SQLite driver
 alembic==1.13.2              # schema migrations
 
 # --- Auth ---
-python-jose[cryptography]==3.3.0   # JWT tokens
+python-jose[cryptography]==3.4.0   # JWT tokens
 bcrypt==5.0.0                      # password hashing (direct, not via passlib)
 
 # --- AI providers ---
