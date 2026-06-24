@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Add action — Trusted Advisor{% endblock %}
+{% block nav_actions %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Add action</h1>
+    <p class="page-subtitle">A concrete next move for one relationship.</p>
+  </div>
+  <a href="/actions" class="btn btn-ghost">Cancel</a>
+</div>
+
+<form method="post" action="/actions" class="card" style="max-width: 680px;">
+  <div class="field">
+    <label for="contact_id">Contact</label>
+    <select id="contact_id" name="contact_id" required>
+      <option value="" disabled {% if not preselected_contact_id %}selected{% endif %}>Select a contact…</option>
+      {% for c in contacts %}
+      <option value="{{ c.id }}" {% if preselected_contact_id == c.id %}selected{% endif %}>
+        {{ c.full_name }}{% if c.title %} — {{ c.title }}{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="field">
+    <label for="action_text">Action</label>
+    <textarea id="action_text" name="action_text" required style="min-height: 90px;"
+      placeholder="The specific next move — e.g. 'Send the sector benchmarking memo and offer to walk them through it.'"></textarea>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label for="urgency">Urgency</label>
+      <select id="urgency" name="urgency">
+        {% for value, label in urgencies %}
+        <option value="{{ value }}" {% if value == "when_ready" %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="due_date">Due date <span class="text-muted" style="text-transform:none; letter-spacing:0;">(optional)</span></label>
+      <input type="date" id="due_date" name="due_date">
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="rationale">Why <span class="text-muted" style="text-transform:none; letter-spacing:0;">(optional)</span></label>
+    <input type="text" id="rationale" name="rationale"
+           placeholder="What makes this the right move now?">
+  </div>
+
+  <div class="flex gap-1 mt-2">
+    <button type="submit" class="btn btn-primary">Add to worklist</button>
+    <a href="/actions" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>
+
+<style>
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+</style>
+{% endblock %}

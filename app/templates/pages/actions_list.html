@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Next best actions — Trusted Advisor{% endblock %}
+{% block nav_actions %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Next best actions</h1>
+    <p class="page-subtitle">
+      {% if total_pending %}{{ total_pending }} open across your relationships — sequenced by trust impact{% else %}Your worklist is clear{% endif %}
+    </p>
+  </div>
+  <a href="/actions/new" class="btn btn-amber">+ Add action</a>
+</div>
+
+{% macro action_card(sa) %}
+<div class="action-card">
+  <div class="action-main">
+    <div class="action-head">
+      <a href="/contacts/{{ sa.contact.id }}" class="action-contact" onclick="event.stopPropagation()">
+        {{ sa.contact.full_name }}
+      </a>
+      {% if sa.action.ai_generated %}<span class="ai-tag">from debrief</span>{% endif %}
+      {% if sa.action.due_date %}
+      <span class="action-due">{{ sa.action.due_date.strftime("%b %d") }}</span>
+      {% endif %}
+    </div>
+    <p class="action-text">{{ sa.action.action_text }}</p>
+    <p class="action-reason">{{ sa.reason }}</p>
+  </div>
+  <div class="action-controls">
+    <form method="post" action="/actions/{{ sa.action.id }}/complete">
+      <button type="submit" class="btn btn-primary btn-sm" title="Mark complete">Done</button>
+    </form>
+    <form method="post" action="/actions/{{ sa.action.id }}/dismiss">
+      <button type="submit" class="btn btn-ghost btn-sm" title="Dismiss">Dismiss</button>
+    </form>
+  </div>
+</div>
+{% endmacro %}
+
+{% if total_pending %}
+
+  {% if worklist.do_now %}
+  <div class="band">
+    <div class="band-head band-head--do-now">
+      <span class="band-dot"></span> Do now
+      <span class="band-count">{{ worklist.do_now|length }}</span>
+    </div>
+    {% for sa in worklist.do_now %}{{ action_card(sa) }}{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if worklist.this_week %}
+  <div class="band">
+    <div class="band-head band-head--this-week">
+      <span class="band-dot"></span> This week
+      <span class="band-count">{{ worklist.this_week|length }}</span>
+    </div>
+    {% for sa in worklist.this_week %}{{ action_card(sa) }}{% endfor %}
+  </div>
+  {% endif %}
+
+  {% if worklist.when_ready %}
+  <div class="band">
+    <div class="band-head band-head--when-ready">
+      <span class="band-dot"></span> When ready
+      <span class="band-count">{{ worklist.when_ready|length }}</span>
+    </div>
+    {% for sa in worklist.when_ready %}{{ action_card(sa) }}{% endfor %}
+  </div>
+  {% endif %}
+
+{% else %}
+<div class="card">
+  <p class="text-muted">No open actions. Confirm a debrief or add one manually to start building your worklist.</p>
+  <a href="/actions/new" class="btn btn-primary mt-2">+ Add your first action</a>
+</div>
+{% endif %}
+
+{% if recent_done %}
+<details class="done-section mt-3">
+  <summary>Recently completed &amp; dismissed ({{ recent_done|length }})</summary>
+  <div class="card mt-1" style="padding: 0;">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Contact</th><th>Action</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          {% for a in recent_done %}
+          <tr>
+            <td><strong>{{ a.contact.full_name }}</strong></td>
+            <td style="max-width: 340px;" class="text-muted">{{ a.action_text|truncate(60) }}</td>
+            <td><span class="status-pill status-pill--{{ a.status }}">{{ a.status }}</span></td>
+            <td class="text-right">
+              <form method="post" action="/actions/{{ a.id }}/reopen">
+                <button type="submit" class="btn btn-ghost btn-sm">Reopen</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</details>
+{% endif %}
+
+<style>
+  .band { margin-bottom: 1.75rem; }
+  .band-head { display: flex; align-items: center; gap: 0.5rem; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); margin-bottom: 0.6rem; }
+  .band-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .band-head--do-now .band-dot    { background: var(--score-low); }
+  .band-head--this-week .band-dot { background: var(--amber); }
+  .band-head--when-ready .band-dot{ background: var(--slate-400); }
+  .band-count { background: var(--slate-100); color: var(--text-muted); border-radius: 100px; padding: 0.05rem 0.5rem; font-size: 11px; }
+
+  .action-card { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 0.6rem; }
+  .action-main { flex: 1; min-width: 0; }
+  .action-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem; }
+  .action-contact { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .action-contact:hover { color: var(--amber-dim); text-decoration: none; }
+  .ai-tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--amber-dim); background: #FFFBEB; padding: 0.05rem 0.4rem; border-radius: 4px; }
+  .action-due { font-size: 11px; font-weight: 600; color: var(--text-muted); font-family: var(--font-mono); margin-left: auto; }
+  .action-text { font-size: 14px; color: var(--text-primary); margin-bottom: 0.3rem; line-height: 1.5; }
+  .action-reason { font-size: 12px; color: var(--text-muted); }
+  .action-controls { display: flex; gap: 0.4rem; flex-shrink: 0; }
+  .action-controls form { margin: 0; }
+
+  .done-section summary { font-size: 13px; color: var(--text-secondary); cursor: pointer; font-weight: 500; }
+  .mt-1 { margin-top: 0.5rem; }
+  .mt-3 { margin-top: 1.5rem; }
+  .status-pill { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.15rem 0.5rem; border-radius: 100px; }
+  .status-pill--completed { background: #ECFDF5; color: var(--score-high); }
+  .status-pill--dismissed { background: var(--slate-100); color: var(--text-muted); }
+
+  @media (max-width: 640px) {
+    .action-card { flex-direction: column; }
+    .action-controls { width: 100%; }
+  }
+</style>
+{% endblock %}

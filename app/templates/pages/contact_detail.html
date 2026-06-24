@@ -86,6 +86,35 @@
   {% endif %}
 </div>
 
+<!-- Open actions -->
+<div class="card mt-2">
+  <div class="flex-between" style="margin-bottom: 0.85rem;">
+    <h2 class="section-heading" style="margin:0;">Open actions</h2>
+    <a href="/actions/new?contact_id={{ contact.id }}" class="btn btn-amber btn-sm">+ Add action</a>
+  </div>
+  {% if open_actions %}
+  <div>
+    {% for a in open_actions %}
+    <div class="oa-row">
+      <div class="oa-main">
+        <p class="oa-text">{{ a.action_text }}</p>
+        <div class="oa-meta">
+          {% if a.ai_generated %}<span class="ai-tag">from debrief</span>{% endif %}
+          {% if a.due_date %}<span class="text-muted text-sm">due {{ a.due_date.strftime("%b %d") }}</span>{% endif %}
+        </div>
+      </div>
+      <form method="post" action="/actions/{{ a.id }}/complete" style="margin:0;">
+        <button type="submit" class="btn btn-primary btn-sm">Done</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  <a href="/actions" class="text-sm" style="display:inline-block; margin-top:0.6rem;">View full worklist →</a>
+  {% else %}
+  <p class="text-muted text-sm">No open actions for {{ contact.full_name }}.</p>
+  {% endif %}
+</div>
+
 <!-- Interactions -->
 <div class="card mt-2">
   <div class="flex-between" style="margin-bottom: 0.85rem;">
@@ -168,6 +197,13 @@
 </div>
 
 <style>
+  .oa-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+  .oa-row:last-child { border-bottom: none; }
+  .oa-main { flex: 1; min-width: 0; }
+  .oa-text { font-size: 13.5px; margin-bottom: 0.2rem; }
+  .oa-meta { display: flex; align-items: center; gap: 0.5rem; }
+  .ai-tag { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--amber-dim); background: #FFFBEB; padding: 0.05rem 0.4rem; border-radius: 4px; }
+
   .cadence { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.15rem 0.5rem; border-radius: 100px; }
   .cadence--active  { background: #ECFDF5; color: var(--score-high); }
   .cadence--cooling { background: #FFFBEB; color: var(--amber-dim); }

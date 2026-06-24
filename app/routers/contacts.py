@@ -18,6 +18,7 @@ The user picks diagnostic answers; the app derives C/R/I/SO from them.
 """
 
 from pathlib import Path
+from datetime import date
 
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -28,7 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies import get_current_user
-from app.models import Contact, Interaction, User, DiscoveryLayer
+from app.models import Contact, Interaction, User, DiscoveryLayer, ActionStatus
 from app.services import scoring
 from app.services import insights_service
 
@@ -212,6 +213,7 @@ async def contact_detail(
         .options(
             selectinload(Contact.interactions).selectinload(Interaction.debrief_draft),
             selectinload(Contact.insights),
+            selectinload(Contact.actions),
         )
     )
     contact = result.scalar_one_or_none()
@@ -246,6 +248,10 @@ async def contact_detail(
             "giving": giving,
             "insights": sorted(
                 contact.insights, key=lambda i: i.delivered_on, reverse=True
+            ),
+            "open_actions": sorted(
+                [a for a in contact.actions if a.status == ActionStatus.PENDING],
+                key=lambda a: (a.due_date is None, a.due_date or date.max),
             ),
         },
     )
