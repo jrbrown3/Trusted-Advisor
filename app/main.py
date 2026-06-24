@@ -74,11 +74,7 @@ app.include_router(actions.router,      prefix="/actions",      tags=["actions"]
 app.include_router(dashboard.router,                            tags=["dashboard"])
 
 
-# ── Root redirect ─────────────────────────────────────────────
-
-@app.get("/", include_in_schema=False)
-async def root(request: Request):
-    return templates.TemplateResponse(request, "pages/dashboard.html")
+# ── Root is served by the dashboard router (GET /) ───────────
 
 
 # ── Exception handlers ────────────────────────────────────────

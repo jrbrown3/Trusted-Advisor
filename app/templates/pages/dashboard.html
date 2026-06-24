@@ -6,13 +6,173 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Dashboard</h1>
-    <p class="page-subtitle">Relationship health at a glance</p>
+    <p class="page-subtitle">Your relationship portfolio at a glance</p>
   </div>
   <a href="/contacts/new" class="btn btn-amber">+ Add contact</a>
 </div>
 
-<!-- Phase 8: dashboard widgets go here -->
+{% if d.total_contacts == 0 %}
 <div class="card">
-  <p class="text-muted text-sm">Dashboard widgets will populate in Phase 8. Start by adding a contact.</p>
+  <p class="text-muted">No relationships yet. Add your first contact to start building trust deliberately.</p>
+  <a href="/contacts/new" class="btn btn-primary mt-2">+ Add your first contact</a>
 </div>
+{% else %}
+
+<!-- KPI strip -->
+<div class="kpi-strip">
+  <div class="kpi">
+    <div class="kpi-value">{{ d.total_contacts }}</div>
+    <div class="kpi-label">Relationships</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-value">{{ "%.1f"|format(d.avg_trust) }}</div>
+    <div class="kpi-label">Avg trust score</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-value">{{ d.open_actions }}{% if d.overdue_actions %} <span class="kpi-sub kpi-sub--alert">{{ d.overdue_actions }} overdue</span>{% endif %}</div>
+    <div class="kpi-label">Open actions</div>
+  </div>
+  <div class="kpi {% if d.needs_attention %}kpi--alert{% endif %}">
+    <div class="kpi-value">{{ d.needs_attention }}</div>
+    <div class="kpi-label">Need attention</div>
+  </div>
+</div>
+
+<div class="dash-grid">
+
+  <!-- Left column -->
+  <div>
+    <!-- Do now -->
+    <div class="card">
+      <div class="flex-between" style="margin-bottom: 0.85rem;">
+        <h2 class="section-heading" style="margin:0;">Do now</h2>
+        <a href="/actions" class="text-sm">Full worklist &rarr;</a>
+      </div>
+      {% if d.do_now %}
+        {% for sa in d.do_now %}
+        <div class="dash-action">
+          <div class="dash-action-main">
+            <a href="/contacts/{{ sa.contact.id }}" class="dash-action-contact">{{ sa.contact.full_name }}</a>
+            <p class="dash-action-text">{{ sa.action.action_text }}</p>
+            <p class="dash-action-reason">{{ sa.reason }}</p>
+          </div>
+          <form method="post" action="/actions/{{ sa.action.id }}/complete" style="margin:0;">
+            <button type="submit" class="btn btn-primary btn-sm">Done</button>
+          </form>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted text-sm">Nothing urgent. {% if d.open_actions %}Your open actions can wait &mdash; see the full worklist.{% else %}No open actions.{% endif %}</p>
+      {% endif %}
+    </div>
+
+    <!-- Needs attention -->
+    <div class="card mt-2">
+      <h2 class="section-heading">Needs attention</h2>
+      {% if d.attention %}
+        {% for item in d.attention %}
+        <a href="/contacts/{{ item.contact.id }}" class="attention-row">
+          <span class="attention-name">{{ item.contact.full_name }}</span>
+          <span class="attention-reasons">
+            {% for r in item.reasons %}<span class="attention-flag">{{ r }}</span>{% endfor %}
+          </span>
+        </a>
+        {% endfor %}
+      {% else %}
+        <p class="text-muted text-sm">Every relationship is on track. No erosion signals.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right column: portfolio -->
+  <div class="card" style="padding: 0;">
+    <div style="padding: 1.5rem 1.5rem 0.85rem;">
+      <h2 class="section-heading" style="margin:0;">Portfolio</h2>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Contact</th><th>Trust</th><th>Trajectory</th><th>Cadence</th><th>Layer</th></tr>
+        </thead>
+        <tbody>
+          {% for row in d.portfolio %}
+          <tr onclick="window.location='/contacts/{{ row.contact.id }}'" style="cursor:pointer;">
+            <td>
+              <strong>{{ row.contact.full_name }}</strong>
+              {% if row.open_count %}<span class="open-badge">{{ row.open_count }}</span>{% endif %}
+            </td>
+            <td><span class="trust-score trust-score--{{ row.band }}">{{ "%.1f"|format(row.score) }}</span></td>
+            <td>
+              {% if row.trajectory %}
+              <span class="traj traj--{{ row.trajectory }}">{{ row.trajectory.replace("_", " ") }}</span>
+              {% else %}<span class="text-muted text-sm">&mdash;</span>{% endif %}
+            </td>
+            <td>
+              {% if row.cadence == "none" %}<span class="text-muted text-sm">&mdash;</span>
+              {% else %}<span class="cad cad--{{ row.cadence }}">{{ row.cadence }}</span>{% endif %}
+            </td>
+            <td>
+              <div class="layer-dots">
+                {% for n in range(1, 5) %}
+                <span class="layer-dot {% if n <= row.layer %}reached{% endif %}"></span>
+                {% endfor %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endif %}
+
+<style>
+  .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+  .kpi { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.1rem 1.25rem; }
+  .kpi--alert { border-color: #FECACA; background: #FEF2F2; }
+  .kpi-value { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .kpi-sub { font-size: 12px; font-weight: 600; }
+  .kpi-sub--alert { color: var(--score-low); }
+  .kpi-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.4rem; }
+
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+  .section-heading { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+  .mt-2 { margin-top: 1rem; }
+
+  .dash-action { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.85rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+  .dash-action:last-child { border-bottom: none; }
+  .dash-action-main { flex: 1; min-width: 0; }
+  .dash-action-contact { font-size: 12.5px; font-weight: 600; }
+  .dash-action-contact:hover { color: var(--amber-dim); text-decoration: none; }
+  .dash-action-text { font-size: 13.5px; margin: 0.15rem 0; }
+  .dash-action-reason { font-size: 11.5px; color: var(--text-muted); }
+
+  .attention-row { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+  .attention-row:last-child { border-bottom: none; }
+  .attention-row:hover { text-decoration: none; }
+  .attention-row:hover .attention-name { color: var(--amber-dim); }
+  .attention-name { font-size: 13.5px; font-weight: 600; flex-shrink: 0; }
+  .attention-reasons { display: flex; flex-wrap: wrap; gap: 0.3rem; justify-content: flex-end; }
+  .attention-flag { font-size: 11px; font-weight: 600; background: #FEF2F2; color: var(--score-low); padding: 0.1rem 0.45rem; border-radius: 100px; }
+
+  .open-badge { display: inline-block; min-width: 17px; text-align: center; font-size: 10.5px; font-weight: 700; background: var(--slate-900); color: #fff; border-radius: 100px; padding: 0.05rem 0.35rem; margin-left: 0.35rem; vertical-align: middle; }
+
+  .traj { font-size: 11px; font-weight: 600; text-transform: capitalize; padding: 0.12rem 0.5rem; border-radius: 100px; }
+  .traj--strengthening { background: #ECFDF5; color: var(--score-high); }
+  .traj--stable        { background: #EFF6FF; color: #1E40AF; }
+  .traj--declining     { background: #FFFBEB; color: var(--amber-dim); }
+  .traj--at_risk       { background: #FEF2F2; color: var(--score-low); }
+
+  .cad { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; padding: 0.12rem 0.45rem; border-radius: 100px; }
+  .cad--active  { background: #ECFDF5; color: var(--score-high); }
+  .cad--cooling { background: #FFFBEB; color: var(--amber-dim); }
+  .cad--cold    { background: #FEF2F2; color: var(--score-low); }
+
+  @media (max-width: 900px) {
+    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    .dash-grid { grid-template-columns: 1fr; }
+  }
+</style>
 {% endblock %}
