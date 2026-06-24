@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Prepare for meeting — Trusted Advisor{% endblock %}
+{% block nav_interactions %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Prepare for a meeting</h1>
+    <p class="page-subtitle">Claude drafts a discovery-focused agenda from your history with this person.</p>
+  </div>
+  <a href="/interactions" class="btn btn-ghost">Cancel</a>
+</div>
+
+<form method="post" action="/interactions/prepare" class="card" style="max-width: 680px;">
+  <div class="field">
+    <label for="contact_id">Contact</label>
+    <select id="contact_id" name="contact_id" required>
+      <option value="" disabled {% if not preselected_contact_id %}selected{% endif %}>Select a contact…</option>
+      {% for c in contacts %}
+      <option value="{{ c.id }}" {% if preselected_contact_id == c.id %}selected{% endif %}>
+        {{ c.full_name }}{% if c.title %} — {{ c.title }}{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label for="meeting_date">Meeting date</label>
+      <input type="date" id="meeting_date" name="meeting_date" value="{{ default_date }}" required>
+    </div>
+    <div class="field">
+      <label for="medium">Medium</label>
+      <select id="medium" name="medium">
+        {% for m in mediums %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="objective">Your objective <span class="text-muted" style="text-transform:none; letter-spacing:0;">(optional — steers the agenda)</span></label>
+    <textarea id="objective" name="objective" style="min-height: 80px;"
+      placeholder="What do you want this meeting to accomplish? e.g. 'Understand their real concerns about the upcoming board review' — leave blank to let the agenda follow the relationship's natural next step."></textarea>
+  </div>
+
+  <div class="ai-draft-banner">
+    The agenda is generated as a draft for you to review. Nothing is finalized until you confirm it.
+  </div>
+
+  <div class="flex gap-1 mt-2">
+    <button type="submit" class="btn btn-amber">Generate agenda</button>
+    <a href="/interactions" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>
+
+<style>
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+</style>
+{% endblock %}

@@ -119,7 +119,10 @@
 <div class="card mt-2">
   <div class="flex-between" style="margin-bottom: 0.85rem;">
     <h2 class="section-heading" style="margin:0;">Interactions</h2>
-    <a href="/interactions/new?contact_id={{ contact.id }}" class="btn btn-amber btn-sm">+ Log interaction</a>
+    <div class="flex gap-1">
+      <a href="/interactions/prepare?contact_id={{ contact.id }}" class="btn btn-ghost btn-sm">Prepare for meeting</a>
+      <a href="/interactions/new?contact_id={{ contact.id }}" class="btn btn-amber btn-sm">+ Log interaction</a>
+    </div>
   </div>
   {% if contact.interactions %}
   <div class="table-wrap">
