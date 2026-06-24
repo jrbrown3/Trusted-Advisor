@@ -15,8 +15,22 @@
 </head>
 <body>
 
+  <!-- Mobile top bar (shown only on small screens) -->
+  <div class="mobile-bar">
+    <button class="mobile-bar-toggle" onclick="toggleNav()" aria-label="Open navigation">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="mobile-bar-brand">
+      <span class="brand-mark">TA</span>
+      <span class="brand-name">Trusted Advisor</span>
+    </div>
+  </div>
+
+  <!-- Overlay behind the drawer on mobile -->
+  <div id="nav-overlay" class="nav-overlay" onclick="toggleNav()"></div>
+
   <!-- Sidebar navigation -->
-  <nav class="sidebar">
+  <nav class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <span class="brand-mark">TA</span>
       <span class="brand-name">Trusted Advisor</span>
@@ -53,5 +67,14 @@
   </main>
 
   {% block scripts %}{% endblock %}
+
+  <script>
+    // Mobile nav drawer toggle. Full-page navigation resets state, so we only
+    // need open/close here.
+    function toggleNav() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('nav-overlay').classList.toggle('show');
+    }
+  </script>
 </body>
 </html>

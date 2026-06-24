@@ -256,7 +256,7 @@ input:focus, select:focus, textarea:focus {
 textarea { resize: vertical; min-height: 100px; }
 
 /* ── Tables ──────────────────────────────────────────────────── */
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; max-width: 100%; }
 
 table {
   width: 100%;
@@ -337,3 +337,67 @@ tr:hover td { background: var(--slate-050); }
 /* ── HTMX loading indicator ──────────────────────────────────── */
 .htmx-indicator { opacity: 0; transition: opacity 0.2s; }
 .htmx-request .htmx-indicator { opacity: 1; }
+
+/* ── Mobile shell ────────────────────────────────────────────── */
+/* Grid children must be allowed to shrink below their content width so that
+   inner tables (overflow-x:auto) scroll instead of bursting the page width. */
+.dash-grid > *, .detail-grid > * { min-width: 0; }
+
+/* The fixed sidebar becomes an off-canvas drawer under a top bar. */
+
+/* Hidden on desktop by default. */
+.mobile-bar { display: none; }
+.nav-overlay { display: none; }
+.mobile-bar-toggle {
+  display: flex; flex-direction: column; gap: 4px;
+  background: none; border: none; cursor: pointer; padding: 6px;
+}
+.mobile-bar-toggle span {
+  width: 20px; height: 2px; background: rgba(255,255,255,0.85); border-radius: 2px;
+}
+
+@media (max-width: 768px) {
+  /* Top bar with hamburger + brand. */
+  .mobile-bar {
+    display: flex; align-items: center; gap: 0.75rem;
+    position: fixed; top: 0; left: 0; right: 0; height: 52px;
+    background: var(--bg-sidebar); padding: 0 0.75rem; z-index: 50;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .mobile-bar-brand { display: flex; align-items: center; gap: 0.5rem; }
+  .mobile-bar-brand .brand-mark { width: 26px; height: 26px; font-size: 10px; }
+  .mobile-bar-brand .brand-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); }
+
+  /* Sidebar slides in from the left. */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    z-index: 60; width: 250px;
+  }
+  .sidebar.open { transform: translateX(0); box-shadow: 0 0 40px rgba(0,0,0,0.4); }
+
+  /* Dimmed overlay while the drawer is open. */
+  .nav-overlay {
+    display: block; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 55;
+    opacity: 0; pointer-events: none; transition: opacity 0.22s ease;
+  }
+  .nav-overlay.show { opacity: 1; pointer-events: auto; }
+
+  /* Content reclaims the full width and clears the top bar. */
+  .main-content {
+    margin-left: 0;
+    padding: 1.25rem 1rem;
+    padding-top: calc(52px + 1.25rem);
+    max-width: 100%;
+  }
+
+  /* Let crowded headers wrap instead of overflowing. */
+  .page-header { flex-wrap: wrap; }
+  .page-title { font-size: 1.2rem; }
+}
+
+/* Very small screens: single-column KPIs. */
+@media (max-width: 520px) {
+  .kpi-strip { grid-template-columns: 1fr 1fr; }
+}
