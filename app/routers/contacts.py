@@ -23,11 +23,12 @@ from fastapi import APIRouter, Depends, Request, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies import get_current_user
-from app.models import Contact, User, DiscoveryLayer
+from app.models import Contact, Interaction, User, DiscoveryLayer
 from app.services import scoring
 
 router = APIRouter()
@@ -202,7 +203,18 @@ async def contact_detail(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    contact = await _get_owned_contact(contact_id, user, db)
+    # Eager-load interactions and their debrief drafts: the detail template
+    # iterates them, and async SQLAlchemy forbids lazy-loading on access.
+    result = await db.execute(
+        select(Contact)
+        .where(Contact.id == contact_id, Contact.owner_id == user.id)
+        .options(
+            selectinload(Contact.interactions).selectinload(Interaction.debrief_draft)
+        )
+    )
+    contact = result.scalar_one_or_none()
+    if contact is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Contact not found")
     score = contact.trust_score
 
     breakdown = []

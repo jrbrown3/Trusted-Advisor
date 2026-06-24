@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}Interaction — {{ contact.full_name }}{% endblock %}
+{% block nav_interactions %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ contact.full_name }}</h1>
+    <p class="page-subtitle">
+      {{ interaction.interaction_date.strftime("%B %d, %Y") }} · {{ interaction.medium }}
+      {% if interaction.duration_minutes %} · {{ interaction.duration_minutes }} min{% endif %}
+    </p>
+  </div>
+  <div class="flex gap-1">
+    <a href="/contacts/{{ contact.id }}" class="btn btn-ghost">View contact</a>
+    <button type="button" class="btn btn-danger"
+            onclick="document.getElementById('del').style.display='flex'">Delete</button>
+  </div>
+</div>
+
+<form id="del" method="post" action="/interactions/{{ interaction.id }}/delete"
+      style="display:none; align-items:center; gap:0.75rem;" class="card flash--error mb-2">
+  <span class="text-sm">Delete this interaction and its debrief? This can't be undone.</span>
+  <button type="submit" class="btn btn-danger btn-sm">Confirm delete</button>
+  <button type="button" class="btn btn-ghost btn-sm"
+          onclick="document.getElementById('del').style.display='none'">Keep</button>
+</form>
+
+{% if error %}
+<div class="card flash--error mb-2"><strong>Couldn't generate debrief.</strong> {{ error }}</div>
+{% endif %}
+
+<div class="detail-grid">
+
+  <!-- Raw notes -->
+  <div class="card">
+    <h2 class="section-heading">Raw notes</h2>
+    {% if interaction.raw_notes %}
+    <p class="text-sm" style="white-space: pre-wrap; line-height: 1.7;">{{ interaction.raw_notes }}</p>
+    {% else %}
+    <p class="text-muted text-sm">No notes recorded for this interaction.</p>
+    {% endif %}
+    <div class="mt-2 text-sm text-muted">
+      Layer reached this interaction:
+      <span class="layer-dots" style="display:inline-flex; vertical-align:middle; margin-left:0.3rem;">
+        {% for n in range(1, 5) %}
+        <span class="layer-dot {% if n <= interaction.layer_reached %}reached{% endif %}"></span>
+        {% endfor %}
+      </span>
+    </div>
+  </div>
+
+  <!-- Debrief panel -->
+  <div class="card">
+    <div class="flex-between" style="margin-bottom: 0.85rem;">
+      <h2 class="section-heading" style="margin:0;">AI debrief</h2>
+      {% if draft and draft.status == "draft" %}
+        <span class="status-pill status-pill--draft">unconfirmed draft</span>
+      {% elif draft and draft.status == "confirmed" %}
+        <span class="status-pill status-pill--confirmed">confirmed</span>
+      {% elif draft and draft.status == "dismissed" %}
+        <span class="status-pill status-pill--dismissed">dismissed</span>
+      {% endif %}
+    </div>
+
+    {% if not draft or draft.status == "dismissed" %}
+      <!-- No active draft → offer generation -->
+      <p class="text-sm text-muted mb-2">
+        {% if draft and draft.status == "dismissed" %}
+          This debrief was dismissed. You can regenerate a fresh one.
+        {% else %}
+          Generate a structured debrief from your notes. Nothing is saved to your
+          relationship record until you review and confirm it.
+        {% endif %}
+      </p>
+      <form method="post" action="/interactions/{{ interaction.id }}/debrief">
+        <button type="submit" class="btn btn-amber">
+          <span class="htmx-indicator"></span>
+          {% if draft and draft.status == "dismissed" %}Regenerate debrief{% else %}Generate AI debrief{% endif %}
+        </button>
+      </form>
+
+    {% else %}
+      <!-- Draft or confirmed → show the structured content -->
+      {% if draft.status == "draft" %}
+      <div class="ai-draft-banner">
+        AI-generated — review before confirming. Confirming creates a tracked action and may advance this contact's discovery layer.
+      </div>
+      {% endif %}
+
+      <div class="debrief-block">
+        <span class="debrief-label">Key themes</span>
+        <ul class="debrief-list">
+          {% for t in draft.key_themes %}<li>{{ t }}</li>{% endfor %}
+        </ul>
+      </div>
+
+      {% if draft.trust_signals %}
+      <div class="debrief-block">
+        <span class="debrief-label">Trust signals</span>
+        <ul class="debrief-list">
+          {% for s in draft.trust_signals %}<li>{{ s }}</li>{% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      <div class="debrief-block flex gap-2">
+        <div>
+          <span class="debrief-label">Layer reached</span>
+          <div class="layer-dots" style="margin-top:0.3rem;">
+            {% for n in range(1, 5) %}
+            <span class="layer-dot {% if n <= draft.layer_reached %}reached{% endif %}"></span>
+            {% endfor %}
+          </div>
+        </div>
+        <div>
+          <span class="debrief-label">Self-orientation risk</span>
+          <div class="so-risk so-risk--{{ draft.self_orientation_risk }}">{{ draft.self_orientation_risk }}</div>
+        </div>
+      </div>
+
+      <div class="debrief-block">
+        <span class="debrief-label">Suggested next action</span>
+        <p class="text-sm" style="margin-top:0.2rem;">{{ draft.suggested_next_action }}</p>
+        {% if draft.follow_up_date %}
+        <p class="text-sm text-muted">Follow up by {{ draft.follow_up_date.strftime("%b %d, %Y") }}</p>
+        {% endif %}
+      </div>
+
+      <p class="text-sm text-muted" style="margin-top:0.5rem;">
+        Generated by {{ draft.llm_provider }}.
+      </p>
+
+      {% if draft.status == "draft" %}
+      <div class="flex gap-1 mt-2">
+        <form method="post" action="/interactions/{{ interaction.id }}/debrief/confirm">
+          <button type="submit" class="btn btn-primary">Confirm debrief</button>
+        </form>
+        <form method="post" action="/interactions/{{ interaction.id }}/debrief/dismiss">
+          <button type="submit" class="btn btn-ghost">Dismiss</button>
+        </form>
+        <form method="post" action="/interactions/{{ interaction.id }}/debrief">
+          <button type="submit" class="btn btn-ghost">Regenerate</button>
+        </form>
+      </div>
+      {% elif draft.status == "confirmed" %}
+      <div class="flash--success card mt-2" style="padding:0.6rem 0.85rem;">
+        <span class="text-sm">Confirmed. A tracked action was created and the contact's discovery layer updated where deeper.</span>
+      </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+</div>
+
+<style>
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: start; }
+  .section-heading { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+  .mb-2 { margin-bottom: 1rem; }
+
+  .status-pill { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.15rem 0.5rem; border-radius: 100px; }
+  .status-pill--draft     { background: #FFFBEB; color: var(--amber-dim); }
+  .status-pill--confirmed { background: #ECFDF5; color: var(--score-high); }
+  .status-pill--dismissed { background: var(--slate-100); color: var(--text-muted); }
+
+  .debrief-block { padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+  .debrief-block:last-of-type { border-bottom: none; }
+  .debrief-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+  .debrief-list { margin: 0.4rem 0 0 1.1rem; padding: 0; }
+  .debrief-list li { font-size: 13.5px; margin-bottom: 0.25rem; }
+
+  .so-risk { display: inline-block; margin-top: 0.3rem; font-size: 13px; font-weight: 600; text-transform: capitalize; padding: 0.15rem 0.6rem; border-radius: 100px; }
+  .so-risk--low    { background: #ECFDF5; color: var(--score-high); }
+  .so-risk--medium { background: #FFFBEB; color: var(--amber-dim); }
+  .so-risk--high   { background: #FEF2F2; color: var(--score-low); }
+
+  @media (max-width: 820px) { .detail-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}

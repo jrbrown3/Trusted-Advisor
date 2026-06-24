@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Log interaction — Trusted Advisor{% endblock %}
+{% block nav_interactions %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Log interaction</h1>
+    <p class="page-subtitle">Capture the raw notes now — the AI debrief comes next.</p>
+  </div>
+  <a href="/interactions" class="btn btn-ghost">Cancel</a>
+</div>
+
+<form method="post" action="/interactions" class="card" style="max-width: 680px;">
+  <div class="field">
+    <label for="contact_id">Contact</label>
+    <select id="contact_id" name="contact_id" required>
+      <option value="" disabled {% if not preselected_contact_id %}selected{% endif %}>Select a contact…</option>
+      {% for c in contacts %}
+      <option value="{{ c.id }}" {% if preselected_contact_id == c.id %}selected{% endif %}>
+        {{ c.full_name }}{% if c.title %} — {{ c.title }}{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label for="interaction_date">Date</label>
+      <input type="date" id="interaction_date" name="interaction_date" value="{{ today }}" required>
+    </div>
+    <div class="field">
+      <label for="medium">Medium</label>
+      <select id="medium" name="medium">
+        {% for m in mediums %}
+        <option value="{{ m }}">{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label for="duration_minutes">Duration (min)</label>
+      <input type="number" id="duration_minutes" name="duration_minutes" min="0" placeholder="e.g. 45">
+    </div>
+    <div class="field">
+      <label for="layer_reached">Layer reached</label>
+      <select id="layer_reached" name="layer_reached">
+        <option value="1">Layer 1 — Surface</option>
+        <option value="2">Layer 2 — Operational</option>
+        <option value="3">Layer 3 — Strategic</option>
+        <option value="4">Layer 4 — Personal</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="raw_notes">Raw notes</label>
+    <textarea id="raw_notes" name="raw_notes" style="min-height: 160px;"
+      placeholder="What was discussed? What did they reveal about their priorities, pressures, or what's on their mind? Be candid about how much of the conversation was about their world vs. yours."></textarea>
+  </div>
+
+  <div class="flex gap-1 mt-2">
+    <button type="submit" class="btn btn-primary">Save interaction</button>
+    <a href="/interactions" class="btn btn-ghost">Cancel</a>
+  </div>
+</form>
+
+<style>
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+</style>
+{% endblock %}
