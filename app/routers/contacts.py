@@ -18,7 +18,8 @@ The user picks diagnostic answers; the app derives C/R/I/SO from them.
 """
 
 from pathlib import Path
-from datetime import date
+import json
+from datetime import date, datetime
 
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -29,9 +30,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies import get_current_user
-from app.models import Contact, Interaction, User, DiscoveryLayer, ActionStatus
+from app.models import (
+    Contact, Interaction, User, DiscoveryLayer, ActionStatus,
+    RelationshipForecast, TrustTrajectory, Action, ActionUrgency,
+)
 from app.services import scoring
 from app.services import insights_service
+from app.services import forecast_service
 
 router = APIRouter()
 
@@ -73,6 +78,79 @@ async def _get_owned_contact(
     if contact is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Contact not found")
     return contact
+
+
+def _json_list(raw: str | None) -> list[str]:
+    """Parse a JSON-list text column back into a Python list."""
+    if not raw:
+        return []
+    try:
+        val = json.loads(raw)
+        return val if isinstance(val, list) else []
+    except (json.JSONDecodeError, TypeError):
+        return []
+
+
+def _forecast_inputs(contact: Contact) -> tuple[dict, datetime | None]:
+    """
+    Build the forecast prompt context AND the 'newest input timestamp' used by
+    the cache-freshness check. Assumes contact.interactions / .insights /
+    .actions are already eager-loaded.
+    """
+    interactions = list(contact.interactions)
+    insights = list(contact.insights)
+    actions = list(contact.actions)
+
+    today = date.today()
+
+    # Days since last interaction.
+    days_since_last = "n/a"
+    if interactions:
+        last = max(i.interaction_date for i in interactions)
+        days_since_last = (today - last).days
+
+    open_actions = [a for a in actions if a.status == ActionStatus.PENDING]
+    overdue = [a for a in open_actions if a.due_date and a.due_date < today]
+    completed = [a for a in actions if a.status == ActionStatus.COMPLETED]
+
+    giving_status = insights_service.giving_signal(
+        [ins.delivered_on for ins in insights]
+    ).status
+
+    # Recent interactions block, with confirmed debrief themes where present.
+    lines = []
+    for ix in sorted(interactions, key=lambda i: i.interaction_date, reverse=True)[:6]:
+        themes = ""
+        d = ix.debrief_draft
+        if d is not None and d.status == "confirmed" and d.key_themes:
+            parsed = _json_list(d.key_themes)
+            if parsed:
+                themes = f" — themes: {', '.join(parsed)}"
+        lines.append(f"  - {ix.interaction_date} ({ix.medium}), layer {ix.layer_reached}{themes}")
+    interactions_block = "\n".join(lines) if lines else "  (none)"
+
+    ctx = {
+        "trust_score": contact.trust_score,
+        "interaction_count": len(interactions),
+        "days_since_last": days_since_last,
+        "giving_status": giving_status,
+        "open_actions": len(open_actions),
+        "overdue_actions": len(overdue),
+        "completed_actions": len(completed),
+        "interactions_block": interactions_block,
+    }
+
+    # Newest relationship-change timestamp for the cache check.
+    candidates: list[datetime] = []
+    if contact.updated_at:
+        candidates.append(contact.updated_at)
+    for coll in (interactions, insights, actions):
+        for obj in coll:
+            if getattr(obj, "created_at", None):
+                candidates.append(obj.created_at)
+    newest_input_at = max(candidates) if candidates else None
+
+    return ctx, newest_input_at
 
 
 # ─────────────────────────────────────────────────────────────
@@ -214,6 +292,7 @@ async def contact_detail(
             selectinload(Contact.interactions).selectinload(Interaction.debrief_draft),
             selectinload(Contact.insights),
             selectinload(Contact.actions),
+            selectinload(Contact.forecasts),
         )
     )
     contact = result.scalar_one_or_none()
@@ -225,6 +304,28 @@ async def contact_detail(
     giving = insights_service.giving_signal(
         [ins.delivered_on for ins in contact.insights]
     )
+
+    # Relationship forecast (Feature J): show the latest non-dismissed one,
+    # and flag whether it's still fresh under the timestamp-based cache rule.
+    _ctx, newest_input_at = _forecast_inputs(contact)
+    latest_forecast = max(
+        (f for f in contact.forecasts if f.status != "dismissed"),
+        key=lambda f: f.created_at or datetime.min,
+        default=None,
+    )
+    forecast_view = None
+    if latest_forecast is not None:
+        forecast_view = {
+            "status": latest_forecast.status,
+            "trajectory": latest_forecast.trajectory,
+            "risk_flags": _json_list(latest_forecast.risk_flags),
+            "opportunities": _json_list(latest_forecast.opportunities),
+            "confidence_score": latest_forecast.confidence_score,
+            "rationale": latest_forecast.rationale,
+            "as_of": latest_forecast.forecast_as_of,
+            "llm_provider": latest_forecast.llm_provider,
+            "fresh": forecast_service.is_fresh(latest_forecast, newest_input_at),
+        }
 
     breakdown = []
     for dim in scoring.DIMENSIONS:
@@ -253,6 +354,8 @@ async def contact_detail(
                 [a for a in contact.actions if a.status == ActionStatus.PENDING],
                 key=lambda a: (a.due_date is None, a.due_date or date.max),
             ),
+            "forecast": forecast_view,
+            "forecast_error": request.query_params.get("forecast_error"),
         },
     )
 
@@ -333,3 +436,124 @@ async def delete_contact(
     contact = await _get_owned_contact(contact_id, user, db)
     await db.delete(contact)
     return RedirectResponse(url="/contacts", status_code=status.HTTP_303_SEE_OTHER)
+
+
+# ─────────────────────────────────────────────────────────────
+# Relationship Health Forecast (Feature J) — with caching
+# ─────────────────────────────────────────────────────────────
+
+async def _load_contact_full(contact_id: int, user: User, db: AsyncSession) -> Contact:
+    """Load a contact with everything the forecast needs."""
+    result = await db.execute(
+        select(Contact)
+        .where(Contact.id == contact_id, Contact.owner_id == user.id)
+        .options(
+            selectinload(Contact.interactions).selectinload(Interaction.debrief_draft),
+            selectinload(Contact.insights),
+            selectinload(Contact.actions),
+            selectinload(Contact.forecasts),
+        )
+    )
+    contact = result.scalar_one_or_none()
+    if contact is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Contact not found")
+    return contact
+
+
+@router.post("/{contact_id}/forecast")
+async def generate_forecast(
+    contact_id: int,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    """
+    Generate a forecast, respecting the cache. If a fresh non-dismissed
+    forecast already exists (and ?force=1 was not passed), reuse it WITHOUT
+    calling the AI. Otherwise generate a new draft.
+    """
+    contact = await _load_contact_full(contact_id, user, db)
+    ctx, newest_input_at = _forecast_inputs(contact)
+
+    force = request.query_params.get("force") == "1"
+    latest = max(
+        (f for f in contact.forecasts if f.status != "dismissed"),
+        key=lambda f: f.created_at or datetime.min,
+        default=None,
+    )
+
+    # Cache hit: reuse, no AI call.
+    if not force and forecast_service.is_fresh(latest, newest_input_at):
+        return RedirectResponse(url=f"/contacts/{contact_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+    # Cache miss: generate.
+    try:
+        result = await forecast_service.generate_forecast(contact, ctx)
+    except forecast_service.ForecastGenerationError as e:
+        from urllib.parse import quote
+        return RedirectResponse(
+            url=f"/contacts/{contact_id}?forecast_error={quote(str(e))}",
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
+
+    # Replace any existing unconfirmed DRAFT; keep confirmed ones as history.
+    for f in contact.forecasts:
+        if f.status == "draft":
+            await db.delete(f)
+    await db.flush()
+
+    db.add(RelationshipForecast(
+        contact_id=contact.id,
+        trajectory=result.trajectory,
+        risk_flags=json.dumps(result.risk_flags),
+        opportunities=json.dumps(result.opportunities),
+        confidence_score=result.confidence_score,
+        rationale=result.rationale,
+        status="draft",
+        llm_provider=forecast_service.active_provider(),
+        forecast_as_of=date.today(),
+    ))
+    return RedirectResponse(url=f"/contacts/{contact_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/{contact_id}/forecast/confirm")
+async def confirm_forecast(
+    contact_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    contact = await _load_contact_full(contact_id, user, db)
+    draft = next((f for f in contact.forecasts if f.status == "draft"), None)
+    if draft is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "No draft forecast to confirm.")
+
+    draft.status = "confirmed"
+    draft.confirmed_at = datetime.utcnow()
+
+    # Framework tie-in: an at-risk forecast produces a concrete next move,
+    # threading the forecast into the Next Best Action worklist.
+    if draft.trajectory == TrustTrajectory.AT_RISK.value:
+        db.add(Action(
+            contact_id=contact.id,
+            action_text=f"Re-engage {contact.full_name} — relationship flagged at risk. "
+                        f"Lead with a value-add, not an ask.",
+            rationale="Auto-created from a confirmed at-risk relationship forecast.",
+            urgency=ActionUrgency.THIS_WEEK.value,
+            status=ActionStatus.PENDING,
+            ai_generated=True,
+            llm_provider=draft.llm_provider,
+        ))
+    return RedirectResponse(url=f"/contacts/{contact_id}", status_code=status.HTTP_303_SEE_OTHER)
+
+
+@router.post("/{contact_id}/forecast/dismiss")
+async def dismiss_forecast(
+    contact_id: int,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    contact = await _load_contact_full(contact_id, user, db)
+    draft = next((f for f in contact.forecasts if f.status == "draft"), None)
+    if draft is not None:
+        draft.status = "dismissed"
+    return RedirectResponse(url=f"/contacts/{contact_id}", status_code=status.HTTP_303_SEE_OTHER)
