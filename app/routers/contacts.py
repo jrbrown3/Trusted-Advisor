@@ -30,6 +30,7 @@ from app.database import get_db
 from app.dependencies import get_current_user
 from app.models import Contact, Interaction, User, DiscoveryLayer
 from app.services import scoring
+from app.services import insights_service
 
 router = APIRouter()
 
@@ -209,13 +210,19 @@ async def contact_detail(
         select(Contact)
         .where(Contact.id == contact_id, Contact.owner_id == user.id)
         .options(
-            selectinload(Contact.interactions).selectinload(Interaction.debrief_draft)
+            selectinload(Contact.interactions).selectinload(Interaction.debrief_draft),
+            selectinload(Contact.insights),
         )
     )
     contact = result.scalar_one_or_none()
     if contact is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Contact not found")
     score = contact.trust_score
+
+    # Giving cadence — the antidote to self-orientation, surfaced on the card.
+    giving = insights_service.giving_signal(
+        [ins.delivered_on for ins in contact.insights]
+    )
 
     breakdown = []
     for dim in scoring.DIMENSIONS:
@@ -236,6 +243,10 @@ async def contact_detail(
             "band": scoring.score_band(score),
             "breakdown": breakdown,
             "deepest_layer": contact.deepest_layer_reached,
+            "giving": giving,
+            "insights": sorted(
+                contact.insights, key=lambda i: i.delivered_on, reverse=True
+            ),
         },
     )
 

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Insights delivered — Trusted Advisor{% endblock %}
+{% block nav_insights %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Insights delivered</h1>
+    <p class="page-subtitle">Evidence of giving — the antidote to self-orientation</p>
+  </div>
+  <a href="/insights/new" class="btn btn-amber">+ Log insight</a>
+</div>
+
+{% if rows %}
+<div class="card" style="padding: 0;">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Delivered</th>
+          <th>Contact</th>
+          <th>Insight</th>
+          <th>Via</th>
+          <th>Cadence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr onclick="window.location='/insights/{{ row.insight.id }}/edit'" style="cursor: pointer;">
+          <td>{{ row.insight.delivered_on.strftime("%b %d, %Y") }}</td>
+          <td><strong>{{ row.insight.contact.full_name }}</strong></td>
+          <td class="insight-cell">
+            {{ row.insight.insight_text|truncate(70) }}
+            {% if row.insight.response_noted %}
+            <span class="landed-tag">response noted</span>
+            {% endif %}
+          </td>
+          <td class="text-muted">{{ row.insight.medium or "—" }}</td>
+          <td>
+            {% if row.signal %}
+            <span class="cadence cadence--{{ row.signal.status }}">{{ row.signal.status }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card">
+  <p class="text-muted">No insights logged yet. Every time you give a contact something valuable — an article, an introduction, a piece of analysis — record it here. Giving is what lowers perceived self-orientation.</p>
+  <a href="/insights/new" class="btn btn-primary mt-2">+ Log your first insight</a>
+</div>
+{% endif %}
+
+<style>
+  .insight-cell { max-width: 360px; }
+  .landed-tag { display: inline-block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--score-high); background: #ECFDF5; padding: 0.05rem 0.4rem; border-radius: 4px; margin-left: 0.4rem; vertical-align: middle; }
+  .cadence { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.15rem 0.5rem; border-radius: 100px; }
+  .cadence--active  { background: #ECFDF5; color: var(--score-high); }
+  .cadence--cooling { background: #FFFBEB; color: var(--amber-dim); }
+  .cadence--cold    { background: #FEF2F2; color: var(--score-low); }
+  .cadence--none    { background: var(--slate-100); color: var(--text-muted); }
+</style>
+{% endblock %}

@@ -123,6 +123,59 @@
   {% endif %}
 </div>
 
+<!-- Insights delivered -->
+<div class="card mt-2">
+  <div class="flex-between" style="margin-bottom: 0.85rem;">
+    <div class="flex gap-1" style="align-items: center;">
+      <h2 class="section-heading" style="margin:0;">Insights delivered</h2>
+      {% if giving %}
+      <span class="cadence cadence--{{ giving.status }}">{{ giving.label }}</span>
+      {% endif %}
+    </div>
+    <a href="/insights/new?contact_id={{ contact.id }}" class="btn btn-amber btn-sm">+ Log insight</a>
+  </div>
+
+  {% if giving and giving.status in ("cooling", "cold") %}
+  <div class="ai-draft-banner" style="margin-bottom: 0.85rem;">
+    {% if giving.days_since %}It's been {{ giving.days_since }} days since you last gave {{ contact.full_name }} something of value.{% else %}You haven't delivered value to {{ contact.full_name }} yet.{% endif %}
+    Reaching out only to ask raises perceived self-orientation — lead with giving.
+  </div>
+  {% endif %}
+
+  {% if insights %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Delivered</th><th>Insight</th><th>Via</th><th>Landed?</th></tr></thead>
+      <tbody>
+        {% for ins in insights %}
+        <tr onclick="window.location='/insights/{{ ins.id }}/edit'" style="cursor:pointer;">
+          <td>{{ ins.delivered_on.strftime("%b %d, %Y") }}</td>
+          <td style="max-width: 320px;">{{ ins.insight_text|truncate(60) }}</td>
+          <td class="text-muted">{{ ins.medium or "—" }}</td>
+          <td>
+            {% if ins.response_noted %}
+            <span class="landed-tag">noted</span>
+            {% else %}<span class="text-muted text-sm">—</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-muted text-sm">No insights delivered to {{ contact.full_name }} yet. Giving value is what lowers perceived self-orientation.</p>
+  {% endif %}
+</div>
+
+<style>
+  .cadence { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.15rem 0.5rem; border-radius: 100px; }
+  .cadence--active  { background: #ECFDF5; color: var(--score-high); }
+  .cadence--cooling { background: #FFFBEB; color: var(--amber-dim); }
+  .cadence--cold    { background: #FEF2F2; color: var(--score-low); }
+  .cadence--none    { background: var(--slate-100); color: var(--text-muted); }
+  .landed-tag { display: inline-block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--score-high); background: #ECFDF5; padding: 0.05rem 0.4rem; border-radius: 4px; }
+</style>
+
 <style>
   .status-pill { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.15rem 0.5rem; border-radius: 100px; }
   .status-pill--draft     { background: #FFFBEB; color: var(--amber-dim); }

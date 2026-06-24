@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == "edit" %}Edit insight{% else %}Log insight{% endif %} — Trusted Advisor{% endblock %}
+{% block nav_insights %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if mode == "edit" %}Edit insight{% else %}Log insight delivered{% endif %}</h1>
+    <p class="page-subtitle">Record value you gave — and, once you know, how it landed.</p>
+  </div>
+  <a href="/insights" class="btn btn-ghost">Cancel</a>
+</div>
+
+<form method="post"
+      action="{% if mode == 'edit' %}/insights/{{ insight.id }}/edit{% else %}/insights{% endif %}"
+      class="card" style="max-width: 680px;">
+
+  <div class="field">
+    <label for="contact_id">Contact</label>
+    <select id="contact_id" name="contact_id" {% if mode == "edit" %}disabled{% endif %} required>
+      <option value="" disabled {% if not preselected_contact_id %}selected{% endif %}>Select a contact…</option>
+      {% for c in contacts %}
+      <option value="{{ c.id }}" {% if preselected_contact_id == c.id %}selected{% endif %}>
+        {{ c.full_name }}{% if c.title %} — {{ c.title }}{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+    {% if mode == "edit" %}
+    {# disabled selects don't submit — keep the value via a hidden field #}
+    <input type="hidden" name="contact_id" value="{{ insight.contact_id }}">
+    {% endif %}
+  </div>
+
+  <div class="field">
+    <label for="insight_text">The insight</label>
+    <textarea id="insight_text" name="insight_text" required style="min-height: 110px;"
+      placeholder="What did you share? A market read, an introduction, a relevant article, a piece of analysis...">{{ insight.insight_text if insight else '' }}</textarea>
+  </div>
+
+  <div class="field-row">
+    <div class="field">
+      <label for="delivered_on">Delivered on</label>
+      <input type="date" id="delivered_on" name="delivered_on"
+             value="{{ insight.delivered_on.isoformat() if insight else today }}" required>
+    </div>
+    <div class="field">
+      <label for="medium">Via</label>
+      <select id="medium" name="medium">
+        <option value="">—</option>
+        {% for m in mediums %}
+        <option value="{{ m }}" {% if insight and insight.medium == m %}selected{% endif %}>{{ m }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="field">
+    <label for="source">Source <span class="text-muted" style="text-transform:none; letter-spacing:0;">(optional)</span></label>
+    <input type="text" id="source" name="source"
+           value="{{ insight.source if insight and insight.source else '' }}"
+           placeholder="e.g. WSJ article, my own analysis, a mutual contact">
+  </div>
+
+  <div class="field">
+    <label for="response_noted">How it landed <span class="text-muted" style="text-transform:none; letter-spacing:0;">(optional — fill in once you know)</span></label>
+    <textarea id="response_noted" name="response_noted"
+      placeholder="Did they engage? Reply candidly? Ignore it? Their response is itself a trust signal.">{{ insight.response_noted if insight and insight.response_noted else '' }}</textarea>
+  </div>
+
+  <div class="flex gap-1 mt-2">
+    <button type="submit" class="btn btn-primary">{% if mode == "edit" %}Save changes{% else %}Log insight{% endif %}</button>
+    {% if mode == "edit" %}
+    <button type="button" class="btn btn-danger"
+            onclick="document.getElementById('del').style.display='inline-flex'">Delete</button>
+    {% endif %}
+    <a href="/insights" class="btn btn-ghost">Cancel</a>
+  </div>
+
+  {% if mode == "edit" %}
+  </form>
+  <form id="del" method="post" action="/insights/{{ insight.id }}/delete"
+        style="display:none; align-items:center; gap:0.75rem;" class="card flash--error mt-2">
+    <span class="text-sm">Delete this insight record? This can't be undone.</span>
+    <button type="submit" class="btn btn-danger btn-sm">Confirm delete</button>
+    <button type="button" class="btn btn-ghost btn-sm"
+            onclick="document.getElementById('del').style.display='none'">Keep</button>
+  </form>
+  {% else %}
+  </form>
+  {% endif %}
+
+<style>
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+</style>
+{% endblock %}
