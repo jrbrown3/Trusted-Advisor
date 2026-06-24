@@ -3,15 +3,22 @@ app/services/security.py
 ────────────────────────
 Password hashing and JWT token utilities.
 
-Uses the `bcrypt` library directly rather than passlib — passlib 1.7.x
-is unmaintained and breaks against bcrypt 5.x (raises on >72-byte inputs
-instead of truncating). Direct bcrypt is simpler and maintained.
+Uses `bcrypt` directly for password hashing (passlib 1.7.x is unmaintained
+and breaks against bcrypt 5.x) and `PyJWT` for tokens.
+
+PyJWT (rather than python-jose) because python-jose 3.3.0 carried two CVEs
+— algorithm confusion with ECDSA/OpenSSH keys (CVE-2024-33663) and a JWE
+"JWT bomb" DoS (CVE-2024-33664) — and is comparatively under-maintained.
+We only ever self-issue and self-verify single-algorithm HS256 tokens, so
+our exposure was low, but PyJWT is the better-maintained, smaller-surface
+choice for exactly this use case.
 """
 
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 
 from app.config import settings
 
@@ -52,5 +59,5 @@ def decode_access_token(token: str) -> str | None:
     try:
         payload = jwt.decode(token, settings.app_secret_key, algorithms=[ALGORITHM])
         return payload.get("sub")
-    except JWTError:
+    except PyJWTError:
         return None
