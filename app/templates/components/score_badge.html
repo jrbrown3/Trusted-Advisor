@@ -1,0 +1,23 @@
+{# components/score_badge.html
+   Reusable Trust Equation score badge.
+   Rendered standalone by the HTMX score-preview endpoint, and included
+   inline on the form. `preview_score` and `preview_band` are required. #}
+<div id="score-badge" class="score-preview-box">
+  <div class="score-preview-number trust-score--{{ preview_band }}">
+    {{ "%.1f"|format(preview_score) }}
+  </div>
+  <div class="score-preview-label">
+    Trust score
+    <span class="score-preview-band score-preview-band--{{ preview_band }}">
+      {{ preview_band }}
+    </span>
+  </div>
+  {% if scores is defined %}
+  <div class="score-preview-formula text-sm text-muted">
+    ({{ "%.1f"|format(scores.credibility) }}
+    + {{ "%.1f"|format(scores.reliability) }}
+    + {{ "%.1f"|format(scores.intimacy) }})
+    ÷ {{ "%.1f"|format(scores.self_orientation) }}
+  </div>
+  {% endif %}
+</div>

@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == "edit" %}Edit {{ contact.full_name }}{% else %}New contact{% endif %} — Trusted Advisor{% endblock %}
+{% block nav_contacts %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{% if mode == "edit" %}Edit contact{% else %}New contact{% endif %}</h1>
+    <p class="page-subtitle">Score each dimension by evidence, not instinct. The equation only works if the inputs are honest.</p>
+  </div>
+  <a href="{% if mode == 'edit' %}/contacts/{{ contact.id }}{% else %}/contacts{% endif %}" class="btn btn-ghost">Cancel</a>
+</div>
+
+<form
+  id="contact-form"
+  method="post"
+  action="{% if mode == 'edit' %}/contacts/{{ contact.id }}/edit{% else %}/contacts{% endif %}"
+>
+  <div class="form-grid">
+
+    <!-- LEFT: identity + diagnostics -->
+    <div class="form-main">
+
+      <div class="card">
+        <h2 class="section-heading">Identity</h2>
+        <div class="field">
+          <label for="full_name">Full name</label>
+          <input type="text" id="full_name" name="full_name"
+                 value="{{ contact.full_name if contact else '' }}" required>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="title">Title / role</label>
+            <input type="text" id="title" name="title"
+                   value="{{ contact.title if contact and contact.title else '' }}"
+                   placeholder="e.g. Chief Investment Officer">
+          </div>
+          <div class="field">
+            <label for="organization">Organization</label>
+            <input type="text" id="organization" name="organization"
+                   value="{{ contact.organization if contact and contact.organization else '' }}">
+          </div>
+        </div>
+        <div class="field">
+          <label for="linkedin_url">LinkedIn URL</label>
+          <input type="text" id="linkedin_url" name="linkedin_url"
+                 value="{{ contact.linkedin_url if contact and contact.linkedin_url else '' }}"
+                 placeholder="https://linkedin.com/in/...">
+        </div>
+      </div>
+
+      <!-- Evidence-anchored diagnostics.
+           The change event bubbles from any radio up to this container,
+           where HTMX catches it and posts the whole form to score-preview. -->
+      <div class="card"
+           hx-post="/contacts/score-preview"
+           hx-trigger="change"
+           hx-target="#score-badge"
+           hx-swap="outerHTML"
+           hx-include="#contact-form">
+
+        <h2 class="section-heading">Trust diagnostics</h2>
+        <p class="text-sm text-muted mb-2">
+          Each answer maps to a defensible score. Pick the option that matches the evidence — not the one you wish were true.
+        </p>
+
+        {% for dim in dimensions %}
+        <fieldset class="diagnostic">
+          <legend class="diagnostic-legend">
+            {{ dim.name }}
+            {% if dim.lower_is_better %}<span class="badge-inverse">lower is better</span>{% endif %}
+          </legend>
+          <p class="diagnostic-blurb">{{ dim.blurb }}</p>
+          <p class="diagnostic-question">{{ dim.question }}</p>
+
+          <div class="anchor-options">
+            {% for opt in dim.options %}
+            <label class="anchor-option">
+              <input type="radio" name="{{ dim.key }}" value="{{ opt.value }}"
+                     {% if selected[dim.key] == opt.value %}checked{% endif %}>
+              <span class="anchor-option-label">{{ opt.label }}</span>
+              <span class="anchor-option-score">{{ "%.1f"|format(opt.value) }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+        {% endfor %}
+      </div>
+
+      <div class="card">
+        <h2 class="section-heading">Discovery depth</h2>
+        <p class="text-sm text-muted mb-2">Deepest layer you've genuinely reached with this person.</p>
+        <div class="field">
+          <label for="deepest_layer_reached">Layer reached</label>
+          <select id="deepest_layer_reached" name="deepest_layer_reached">
+            {% for layer in layers %}
+            <option value="{{ layer.value }}"
+              {% if (contact and contact.deepest_layer_reached == layer.value) or (not contact and layer.value == 1) %}selected{% endif %}>
+              Layer {{ layer.value }} — {{ layer.name|capitalize }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label for="notes">Notes</label>
+          <textarea id="notes" name="notes" placeholder="Context, history, what you know about their world...">{{ contact.notes if contact and contact.notes else '' }}</textarea>
+        </div>
+      </div>
+
+      <div class="flex gap-1 mt-2">
+        <button type="submit" class="btn btn-primary">
+          {% if mode == "edit" %}Save changes{% else %}Create contact{% endif %}
+        </button>
+        <a href="{% if mode == 'edit' %}/contacts/{{ contact.id }}{% else %}/contacts{% endif %}" class="btn btn-ghost">Cancel</a>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: sticky live score -->
+    <aside class="form-aside">
+      <div class="card score-card">
+        <h2 class="section-heading">Live trust score</h2>
+        <p class="text-sm text-muted mb-2">Updates as you answer. Trust = (C + R + I) ÷ Self-Orientation.</p>
+        {% include "components/score_badge.html" %}
+      </div>
+    </aside>
+
+  </div>
+</form>
+
+<style>
+  .form-grid { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start; }
+  .form-aside { position: sticky; top: 2rem; }
+  .section-heading { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-primary); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .mb-2 { margin-bottom: 1rem; }
+
+  .diagnostic { border: none; margin: 0 0 1.5rem 0; padding: 0; }
+  .diagnostic:last-child { margin-bottom: 0; }
+  .diagnostic-legend { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem; }
+  .badge-inverse { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; background: var(--slate-100); color: var(--text-secondary); padding: 0.1rem 0.4rem; border-radius: 4px; }
+  .diagnostic-blurb { font-size: 12px; color: var(--text-muted); margin: 0.1rem 0 0.5rem; }
+  .diagnostic-question { font-size: 13.5px; color: var(--text-secondary); margin-bottom: 0.6rem; font-weight: 500; }
+
+  .anchor-options { display: flex; flex-direction: column; gap: 4px; }
+  .anchor-option { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: border-color 0.12s, background 0.12s; }
+  .anchor-option:hover { background: var(--slate-050); }
+  .anchor-option:has(input:checked) { border-color: var(--amber); background: #FFFBEB; }
+  .anchor-option input { width: auto; margin: 0; flex-shrink: 0; accent-color: var(--amber); }
+  .anchor-option-label { flex: 1; font-size: 13px; color: var(--text-primary); }
+  .anchor-option-score { font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text-muted); flex-shrink: 0; }
+
+  .score-card { text-align: center; }
+  .score-preview-box { padding: 0.5rem 0; }
+  .score-preview-number { font-size: 3rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; padding: 0.5rem; border-radius: var(--radius-lg); }
+  .score-preview-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.5rem; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+  .score-preview-band { font-weight: 700; }
+  .score-preview-band--high { color: var(--score-high); }
+  .score-preview-band--mid  { color: var(--amber-dim); }
+  .score-preview-band--low  { color: var(--score-low); }
+  .score-preview-formula { margin-top: 0.75rem; font-family: var(--font-mono); }
+
+  @media (max-width: 820px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .form-aside { position: static; }
+  }
+</style>
+{% endblock %}

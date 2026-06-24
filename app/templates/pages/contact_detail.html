@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}{{ contact.full_name }} — Trusted Advisor{% endblock %}
+{% block nav_contacts %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ contact.full_name }}</h1>
+    <p class="page-subtitle">
+      {{ contact.title or "—" }}{% if contact.organization %} · {{ contact.organization }}{% endif %}
+    </p>
+  </div>
+  <div class="flex gap-1">
+    <a href="/contacts/{{ contact.id }}/edit" class="btn btn-ghost">Edit</a>
+    <button type="button" class="btn btn-danger"
+            onclick="document.getElementById('delete-form').style.display='flex'">Delete</button>
+  </div>
+</div>
+
+<!-- Delete confirmation (hidden until Delete clicked) -->
+<form id="delete-form" method="post" action="/contacts/{{ contact.id }}/delete"
+      style="display:none; align-items:center; gap:0.75rem;"
+      class="card flash--error mb-2">
+  <span class="text-sm">Delete {{ contact.full_name }} and all linked interactions? This can't be undone.</span>
+  <button type="submit" class="btn btn-danger btn-sm">Confirm delete</button>
+  <button type="button" class="btn btn-ghost btn-sm"
+          onclick="document.getElementById('delete-form').style.display='none'">Keep</button>
+</form>
+
+<div class="detail-grid">
+
+  <!-- Score panel -->
+  <div class="card score-detail-card">
+    <div class="score-detail-number trust-score--{{ band }}">{{ "%.1f"|format(score) }}</div>
+    <div class="score-detail-label">
+      Trust score
+      <span class="score-detail-band score-preview-band--{{ band }}">{{ band }}</span>
+    </div>
+    <div class="score-detail-formula">
+      ({{ "%.1f"|format(contact.credibility) }}
+      + {{ "%.1f"|format(contact.reliability) }}
+      + {{ "%.1f"|format(contact.intimacy) }})
+      ÷ {{ "%.1f"|format(contact.self_orientation) }}
+    </div>
+  </div>
+
+  <!-- Dimension breakdown -->
+  <div class="card">
+    <h2 class="section-heading">Dimension breakdown</h2>
+    {% for dim in breakdown %}
+    <div class="dim-row">
+      <div class="dim-row-head">
+        <span class="dim-name">{{ dim.name }}</span>
+        <span class="dim-value">{{ "%.1f"|format(dim.value) }}<span class="dim-max">/10</span></span>
+      </div>
+      <div class="dim-bar-track">
+        <div class="dim-bar-fill {% if dim.lower_is_better %}dim-bar-fill--inverse{% endif %}"
+             style="width: {{ (dim.value / 10 * 100)|round }}%"></div>
+      </div>
+      <p class="dim-blurb">{{ dim.blurb }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<!-- Discovery + notes -->
+<div class="card mt-2">
+  <h2 class="section-heading">Discovery depth</h2>
+  <div class="flex gap-2" style="align-items: center;">
+    <div class="layer-dots">
+      {% for n in range(1, 5) %}
+      <span class="layer-dot {% if n <= deepest_layer %}reached{% endif %}"></span>
+      {% endfor %}
+    </div>
+    <span class="text-sm text-muted">
+      Reached Layer {{ deepest_layer }} of 4
+      {% if deepest_layer < 3 %}— push toward strategic (3) and personal (4){% endif %}
+    </span>
+  </div>
+  {% if contact.notes %}
+  <div class="mt-2">
+    <label>Notes</label>
+    <p class="text-sm" style="white-space: pre-wrap;">{{ contact.notes }}</p>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .detail-grid { display: grid; grid-template-columns: 280px 1fr; gap: 1rem; align-items: start; }
+  .section-heading { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.85rem; color: var(--text-primary); }
+
+  .score-detail-card { text-align: center; }
+  .score-detail-number { font-size: 3.5rem; font-weight: 700; line-height: 1; letter-spacing: -0.02em; padding: 0.75rem; border-radius: var(--radius-lg); }
+  .score-detail-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.6rem; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+  .score-detail-band { font-weight: 700; }
+  .score-detail-formula { margin-top: 0.85rem; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+  .score-preview-band--high { color: var(--score-high); }
+  .score-preview-band--mid  { color: var(--amber-dim); }
+  .score-preview-band--low  { color: var(--score-low); }
+
+  .dim-row { margin-bottom: 1.1rem; }
+  .dim-row:last-child { margin-bottom: 0; }
+  .dim-row-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.35rem; }
+  .dim-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+  .dim-value { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+  .dim-max { color: var(--text-muted); font-weight: 400; }
+  .dim-bar-track { height: 6px; background: var(--slate-100); border-radius: 100px; overflow: hidden; }
+  .dim-bar-fill { height: 100%; background: var(--amber); border-radius: 100px; }
+  .dim-bar-fill--inverse { background: var(--slate-400); }
+  .dim-blurb { font-size: 12px; color: var(--text-muted); margin-top: 0.3rem; }
+  .mb-2 { margin-bottom: 1rem; }
+
+  @media (max-width: 820px) {
+    .detail-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
