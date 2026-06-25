@@ -105,8 +105,9 @@ async def setup_submit(
     db.add(user)
     await db.flush()
 
-    # Sign them in immediately.
+    # Sign them in and land on the dashboard — onboard=1 triggers the
+    # first-run tutorial modal on the dashboard.
     token = create_access_token(user.username)
-    response = RedirectResponse(url="/", status_code=status.HTTP_303_SEE_OTHER)
+    response = RedirectResponse(url="/?onboard=1", status_code=status.HTTP_303_SEE_OTHER)
     set_session_cookie(response, token)
     return response

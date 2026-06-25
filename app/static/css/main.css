@@ -438,3 +438,172 @@ tr:hover td { background: var(--slate-050); }
 @media (max-width: 520px) {
   .kpi-strip { grid-template-columns: 1fr 1fr; }
 }
+
+/* ── Loading / processing indicators ────────────────────────── */
+
+/* Spinner that appears inside the button while a form is submitting */
+@keyframes ta-spin { to { transform: rotate(360deg); } }
+
+.btn-loading {
+  opacity: 0.75 !important;
+  cursor: wait !important;
+  pointer-events: none;
+}
+.btn-loading .btn-text { display: none; }
+.btn-spinner {
+  display: none;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: ta-spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+.btn-loading .btn-spinner { display: inline-block; }
+
+/* For ghost / light buttons the spinner track should match */
+.btn-ghost.btn-loading .btn-spinner,
+.btn-danger.btn-loading .btn-spinner {
+  border-color: rgba(0,0,0,0.15);
+  border-top-color: var(--text-secondary);
+}
+
+/* Full-width AI thinking bar — shown above the page when an AI route fires */
+@keyframes ta-progress {
+  0%   { left: -40%; width: 40%; }
+  60%  { left: 40%;  width: 55%; }
+  100% { left: 110%; width: 40%; }
+}
+#ai-thinking-bar {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; height: 3px;
+  background: rgba(30,106,217,0.12);
+  z-index: 9999;
+  overflow: hidden;
+}
+#ai-thinking-bar.active { display: block; }
+#ai-thinking-bar::after {
+  content: '';
+  position: absolute; top: 0; height: 100%;
+  background: linear-gradient(90deg, transparent, var(--brand), var(--brand-bright), transparent);
+  animation: ta-progress 1.4s ease-in-out infinite;
+}
+
+/* AI thinking label that floats below the progress bar */
+#ai-thinking-label {
+  display: none;
+  position: fixed; top: 7px; left: 50%; transform: translateX(-50%);
+  background: var(--brand-navy); color: rgba(255,255,255,0.9);
+  font-size: 11.5px; font-weight: 500; letter-spacing: 0.02em;
+  padding: 0.3rem 0.85rem; border-radius: 100px;
+  z-index: 9999; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(15,32,62,0.25);
+}
+#ai-thinking-bar.active ~ #ai-thinking-label { display: block; }
+
+/* ── Onboarding modal ──────────────────────────────────────── */
+#onboarding-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(15,32,62,0.65);
+  z-index: 200;
+  align-items: center; justify-content: center;
+  padding: 1.5rem;
+}
+#onboarding-overlay.open { display: flex; }
+
+.onb-modal {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  width: 100%; max-width: 560px;
+  box-shadow: 0 20px 60px rgba(15,32,62,0.3);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+.onb-progress {
+  height: 3px;
+  background: var(--slate-100);
+}
+.onb-progress-fill {
+  height: 100%;
+  background: var(--brand);
+  transition: width 0.3s ease;
+}
+
+.onb-slides { position: relative; }
+
+.onb-slide {
+  display: none;
+  padding: 2rem 2rem 1.25rem;
+}
+.onb-slide.active { display: block; }
+
+.onb-icon {
+  width: 48px; height: 48px;
+  background: #EFF5FF;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.1rem;
+  color: var(--brand);
+}
+.onb-icon svg { width: 24px; height: 24px; }
+
+.onb-title {
+  font-size: 1.05rem; font-weight: 700;
+  color: var(--brand-navy); margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
+}
+.onb-body {
+  font-size: 13.5px; line-height: 1.7;
+  color: var(--text-secondary);
+}
+.onb-body strong { color: var(--brand-navy); }
+
+.onb-equation {
+  background: var(--slate-050);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  margin: 0.85rem 0;
+  text-align: center;
+  font-size: 14px; font-weight: 600;
+  color: var(--brand-navy);
+  letter-spacing: 0.01em;
+}
+.onb-equation em { color: var(--score-low); font-style: normal; }
+
+.onb-layers {
+  display: grid; gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+.onb-layer {
+  display: flex; align-items: flex-start; gap: 0.65rem;
+  font-size: 13px; line-height: 1.5;
+}
+.onb-layer-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; flex-shrink: 0;
+  color: #fff; margin-top: 1px;
+}
+.onb-layer-dot--1 { background: var(--slate-400); }
+.onb-layer-dot--2 { background: var(--brand-dark); }
+.onb-layer-dot--3 { background: var(--brand); }
+.onb-layer-dot--4 { background: var(--brand-bright); }
+
+.onb-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 2rem 1.5rem;
+  border-top: 1px solid var(--border);
+  gap: 0.75rem;
+}
+.onb-dots {
+  display: flex; gap: 6px; flex: 1;
+}
+.onb-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--slate-200); transition: background 0.2s;
+}
+.onb-dot.active { background: var(--brand); }
+.onb-nav { display: flex; gap: 0.5rem; }

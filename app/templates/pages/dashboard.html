@@ -175,4 +175,209 @@
     .dash-grid { grid-template-columns: 1fr; }
   }
 </style>
+
+{% if onboard %}
+<!-- ── Onboarding modal ──────────────────────────────────── -->
+<div id="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onb-title-0">
+
+  <div class="onb-modal">
+    <div class="onb-progress">
+      <div class="onb-progress-fill" id="onb-progress-fill" style="width: 16.6%"></div>
+    </div>
+
+    <div class="onb-slides">
+
+      <!-- Slide 1: Welcome -->
+      <div class="onb-slide active" id="onb-slide-0">
+        <div class="onb-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+        </div>
+        <h2 class="onb-title" id="onb-title-0">Welcome to Trusted Advisor</h2>
+        <div class="onb-body">
+          <p>This system is built around a single framework: <strong>trust is not a feeling — it's a measurable, buildable asset.</strong></p>
+          <p style="margin-top:0.65rem;">The next few screens explain the model that powers everything here. Understanding it will make every feature click.</p>
+        </div>
+      </div>
+
+      <!-- Slide 2: The Trust Equation -->
+      <div class="onb-slide" id="onb-slide-1">
+        <div class="onb-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.745 3A23.933 23.933 0 003 12c0 3.183.62 6.22 1.745 9M19.255 3A23.933 23.933 0 0121 12c0 3.183-.62 6.22-1.745 9M8.25 8.885l1.444-.89a.75.75 0 011.105.402l2.402 7.206a.75.75 0 001.104.401l1.445-.889m-8.25.75l.213.09a1.687 1.687 0 002.062-.617l4.45-6.676a1.688 1.688 0 012.062-.618l.213.09"/></svg>
+        </div>
+        <h2 class="onb-title">The Trust Equation</h2>
+        <div class="onb-body">
+          <p>Developed by David Maister, the Trust Equation breaks down exactly what creates — and destroys — trust with another person:</p>
+          <div class="onb-equation">
+            Trust = (Credibility + Reliability + Intimacy) ÷ <em>Self-Orientation</em>
+          </div>
+          <p>Three things in the numerator build trust. One thing in the denominator — your perceived agenda — can wipe it all out. The denominator is the silent deal-killer in senior relationships.</p>
+        </div>
+      </div>
+
+      <!-- Slide 3: Numerator -->
+      <div class="onb-slide" id="onb-slide-2">
+        <div class="onb-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+        </div>
+        <h2 class="onb-title">Building the numerator</h2>
+        <div class="onb-body">
+          <p>The three trust-builders each require a different discipline:</p>
+          <div class="onb-layers" style="margin-top:0.75rem;">
+            <div class="onb-layer">
+              <div class="onb-layer-dot onb-layer-dot--3">C</div>
+              <div><strong>Credibility</strong> — do they trust what you say? Built through domain expertise, relevant insight, and intellectual honesty.</div>
+            </div>
+            <div class="onb-layer">
+              <div class="onb-layer-dot onb-layer-dot--2">R</div>
+              <div><strong>Reliability</strong> — do they trust what you do? Built through consistently doing exactly what you said you would, every time.</div>
+            </div>
+            <div class="onb-layer">
+              <div class="onb-layer-dot onb-layer-dot--4">I</div>
+              <div><strong>Intimacy</strong> — do they trust you with what matters? Built by creating psychological safety and showing you can hold sensitive information well.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 4: Self-Orientation -->
+      <div class="onb-slide" id="onb-slide-3">
+        <div class="onb-icon" style="background:#FEF2F2; color: var(--score-low);">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+        </div>
+        <h2 class="onb-title">The denominator: Self-Orientation</h2>
+        <div class="onb-body">
+          <p><strong>Self-Orientation is the silent deal-killer.</strong> It's the degree to which the other person believes your motives are about you — your deal, your quota, your agenda — rather than genuinely about them.</p>
+          <p style="margin-top:0.65rem;">You can have perfect credibility, bulletproof reliability, and real intimacy — and a single interaction where you clearly want something from them will halve your trust score.</p>
+          <p style="margin-top:0.65rem;">The antidote: <strong>give before you ask, every time.</strong> Consistent insight delivery (tracked in this app) is how you keep self-orientation low over a portfolio of relationships.</p>
+        </div>
+      </div>
+
+      <!-- Slide 5: Discovery Layers -->
+      <div class="onb-slide" id="onb-slide-4">
+        <div class="onb-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"/></svg>
+        </div>
+        <h2 class="onb-title">The four discovery layers</h2>
+        <div class="onb-body">
+          <p>Every relationship exists at a depth. Most advisors stay at Layer 1 and wonder why they can't get traction. The real leverage is at 3 and 4.</p>
+          <div class="onb-layers">
+            <div class="onb-layer">
+              <div class="onb-layer-dot onb-layer-dot--1">1</div>
+              <div><strong>Surface</strong> — Role, org structure, stated priorities. Where everyone starts.</div>
+            </div>
+            <div class="onb-layer">
+              <div class="onb-layer-dot onb-layer-dot--2">2</div>
+              <div><strong>Operational</strong> — Real KPIs, team pressures, budget authority, what's actually on fire.</div>
+            </div>
+            <div class="onb-layer">
+              <div class="onb-layer-dot onb-layer-dot--3">3</div>
+              <div><strong>Strategic</strong> — Long-term agenda, board pressures, competitive fears, where they're taking the org.</div>
+            </div>
+            <div class="onb-layer">
+              <div class="onb-layer-dot onb-layer-dot--4">4</div>
+              <div><strong>Personal</strong> — Career motivations, legacy intent, risk tolerance, what keeps them up at night.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 6: Get started -->
+      <div class="onb-slide" id="onb-slide-5">
+        <div class="onb-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.119-8.54a6 6 0 00-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 00-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 01-2.448-2.448 14.9 14.9 0 01.06-.312m-2.24 2.39a4.493 4.493 0 00-1.757 4.306 4.493 4.493 0 004.306-1.758M16.5 9a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"/></svg>
+        </div>
+        <h2 class="onb-title">You're ready to start</h2>
+        <div class="onb-body">
+          <p>Every feature in Trusted Advisor is designed around this model:</p>
+          <div class="onb-layers" style="margin-top:0.75rem;">
+            <div class="onb-layer">
+              <div class="onb-layer-dot onb-layer-dot--3">→</div>
+              <div><strong>Add your first contact</strong> and score them across all four Trust Equation dimensions.</div>
+            </div>
+            <div class="onb-layer">
+              <div class="onb-layer-dot onb-layer-dot--2">→</div>
+              <div><strong>Log interactions</strong> and let AI debrief them — what layer did you reach? What were the trust signals?</div>
+            </div>
+            <div class="onb-layer">
+              <div class="onb-layer-dot onb-layer-dot--4">→</div>
+              <div><strong>Deliver insights</strong> consistently. Your giving cadence keeps self-orientation low across the whole portfolio.</div>
+            </div>
+          </div>
+          <p style="margin-top:0.75rem;">The dashboard will tell you where to focus every time you open the app.</p>
+        </div>
+      </div>
+
+    </div><!-- /onb-slides -->
+
+    <div class="onb-footer">
+      <div class="onb-dots" id="onb-dots"></div>
+      <div class="onb-nav">
+        <button class="btn btn-ghost btn-sm" id="onb-back" onclick="onbNav(-1)" style="display:none;">Back</button>
+        <button class="btn btn-primary btn-sm" id="onb-next" onclick="onbNav(1)">Next</button>
+      </div>
+    </div>
+  </div><!-- /onb-modal -->
+
+</div><!-- /onboarding-overlay -->
+{% endif %}
+
+{% endblock %}
+
+{% block page_scripts %}
+{% if onboard %}
+<script>
+(function () {
+  const TOTAL = 6;
+  let current = 0;
+
+  const overlay   = document.getElementById('onboarding-overlay');
+  const fill      = document.getElementById('onb-progress-fill');
+  const dotsEl    = document.getElementById('onb-dots');
+  const btnBack   = document.getElementById('onb-back');
+  const btnNext   = document.getElementById('onb-next');
+
+  /* Build dots */
+  for (let i = 0; i < TOTAL; i++) {
+    const d = document.createElement('span');
+    d.className = 'onb-dot' + (i === 0 ? ' active' : '');
+    dotsEl.appendChild(d);
+  }
+
+  function render() {
+    document.querySelectorAll('.onb-slide').forEach((s, i) => {
+      s.classList.toggle('active', i === current);
+    });
+    document.querySelectorAll('.onb-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+    fill.style.width = ((current + 1) / TOTAL * 100) + '%';
+    btnBack.style.display = current === 0 ? 'none' : '';
+    btnNext.textContent   = current === TOTAL - 1 ? 'Get started' : 'Next';
+  }
+
+  window.onbNav = function (dir) {
+    if (dir === 1 && current === TOTAL - 1) {
+      overlay.classList.remove('open');
+      /* Clean ?onboard=1 from the URL without a reload */
+      history.replaceState(null, '', '/');
+      return;
+    }
+    current = Math.max(0, Math.min(TOTAL - 1, current + dir));
+    render();
+  };
+
+  /* Keyboard navigation */
+  document.addEventListener('keydown', function (e) {
+    if (!overlay.classList.contains('open')) return;
+    if (e.key === 'ArrowRight' || e.key === 'Enter') onbNav(1);
+    if (e.key === 'ArrowLeft')  onbNav(-1);
+    if (e.key === 'Escape')     { overlay.classList.remove('open'); history.replaceState(null, '', '/'); }
+  });
+
+  /* Open on load */
+  overlay.classList.add('open');
+  render();
+})();
+</script>
+{% endif %}
 {% endblock %}

@@ -17,6 +17,10 @@
 </head>
 <body>
 
+  <!-- AI progress bar (shown at top when an AI route is processing) -->
+  <div id="ai-thinking-bar"></div>
+  <div id="ai-thinking-label">Claude is thinking…</div>
+
   <!-- Mobile top bar (shown only on small screens) -->
   <div class="mobile-bar">
     <button class="mobile-bar-toggle" onclick="toggleNav()" aria-label="Open navigation">
@@ -88,12 +92,69 @@
   {% block scripts %}{% endblock %}
 
   <script>
-    // Mobile nav drawer toggle. Full-page navigation resets state, so we only
-    // need open/close here.
+    /* ── Mobile nav drawer ──────────────────────────────────── */
     function toggleNav() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('nav-overlay').classList.toggle('show');
     }
+
+    /* ── Global submit loading indicators ───────────────────── *
+     * On any form submit:
+     *   1. Disable the triggering button, swap its label to a spinner + "Working…"
+     *   2. If the form's action matches an AI route, also show the top progress bar.
+     * The browser's full-page navigation resets state on the next load.
+     */
+    (function () {
+      const AI_ROUTES = ['/forecast', '/debrief', '/agenda', '/settings/ai'];
+
+      function isAiRoute(action) {
+        return AI_ROUTES.some(r => action && action.includes(r));
+      }
+
+      function armButton(btn, ai) {
+        if (!btn || btn.dataset.armed) return;
+        btn.dataset.armed = '1';
+
+        /* Wrap existing text in .btn-text if not already done */
+        if (!btn.querySelector('.btn-text')) {
+          btn.innerHTML =
+            '<span class="btn-text">' + btn.innerHTML + '</span>' +
+            '<span class="btn-spinner"></span>';
+        }
+
+        btn.classList.add('btn-loading');
+        btn.disabled = true;
+
+        if (ai) {
+          document.getElementById('ai-thinking-bar').classList.add('active');
+        }
+      }
+
+      document.addEventListener('submit', function (e) {
+        const form = e.target;
+        const action = form.getAttribute('action') || '';
+        const ai = isAiRoute(action);
+
+        /* Find the button that triggered this submit */
+        const btn =
+          form.querySelector('button[type=submit]:focus') ||
+          form.querySelector('button[type=submit]');
+
+        armButton(btn, ai);
+      }, true);
+
+      /* Keyboard Enter on a focused submit button */
+      document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        const btn = document.activeElement;
+        if (btn && btn.type === 'submit') {
+          const form = btn.closest('form');
+          if (form) armButton(btn, isAiRoute(form.getAttribute('action') || ''));
+        }
+      });
+    })();
   </script>
+
+  {% block page_scripts %}{% endblock %}
 </body>
 </html>

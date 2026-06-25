@@ -47,5 +47,9 @@ async def dashboard(
     data = dashboard_service.build_dashboard(contacts)
 
     return templates.TemplateResponse(
-        request, "pages/dashboard.html", {"d": data},
+        request, "pages/dashboard.html",
+        {
+            "d": data,
+            "onboard": request.query_params.get("onboard") == "1",
+        },
     )
