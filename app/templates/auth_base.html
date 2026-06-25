@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Trusted Advisor{% endblock %}</title>
+  <link rel="icon" href="/static/img/favicon.png" type="image/png" />
   <link rel="stylesheet" href="/static/css/main.css" />
   <style>
-    body { display: block; background: var(--slate-050); }
+    body { display: block; background: var(--bg); }
     .auth-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
     .auth-card { width: 100%; max-width: 420px; }
-    .auth-brand { display: flex; align-items: center; gap: 0.6rem; justify-content: center; margin-bottom: 1.5rem; }
-    .auth-brand .brand-mark { width: 34px; height: 34px; font-size: 12px; }
-    .auth-brand .brand-name { font-size: 15px; font-weight: 600; color: var(--text-primary); }
-    .auth-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; }
-    .auth-title { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.3rem; }
+    .auth-brand { display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem; }
+    .auth-logo { height: 60px; width: auto; max-width: 100%; }
+    .auth-panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2rem; box-shadow: 0 1px 3px rgba(15,32,62,0.06); }
+    .auth-title { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 0.3rem; color: var(--brand-navy); }
     .auth-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 1.5rem; }
     .auth-error { background: #FEF2F2; color: #991B1B; font-size: 13px; padding: 0.65rem 0.85rem; border-radius: var(--radius); margin-bottom: 1.25rem; }
     .auth-foot { text-align: center; font-size: 12.5px; color: var(--text-muted); margin-top: 1.25rem; }
@@ -25,8 +25,7 @@
   <div class="auth-wrap">
     <div class="auth-card">
       <div class="auth-brand">
-        <span class="brand-mark">TA</span>
-        <span class="brand-name">Trusted Advisor</span>
+        <img class="auth-logo" src="/static/img/logo.png" alt="Trusted Advisor — Relationship Intelligence" />
       </div>
       {% block content %}{% endblock %}
     </div>

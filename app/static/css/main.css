@@ -1,7 +1,7 @@
 /*
   main.css — Trusted Advisor design system
   ─────────────────────────────────────────
-  Palette: slate + signal amber. No frameworks.
+  Palette: deep navy + shield blue (Trusted Advisor brand). No frameworks.
   Trust is earned quietly — the UI reflects that: minimal chrome,
   data-forward, zero decorative noise.
 */
@@ -11,7 +11,7 @@
 
 /* ── Tokens ─────────────────────────────────────────────────── */
 :root {
-  /* Slate scale */
+  /* Slate scale (text, borders, surfaces) */
   --slate-950: #0C0F14;
   --slate-900: #141820;
   --slate-800: #1E2433;
@@ -22,11 +22,22 @@
   --slate-100: #E8EBF0;
   --slate-050: #F4F6F9;
 
-  /* Signal amber — the one accent, used sparingly */
+  /* ── Brand: Trusted Advisor (shield blue + deep navy) ── */
+  --brand:        #1E6AD9;   /* primary blue accent */
+  --brand-bright: #2D7BF0;   /* hover / highlight */
+  --brand-dark:   #1551B0;   /* pressed / strong text-on-light */
+  --brand-navy:   #0F203E;   /* deep navy — sidebar, dark surfaces */
+  --brand-navy-2: #16294A;   /* slightly lifted navy */
+
+  /* Accent role (points at the brand blue) */
+  --accent:     var(--brand);
+  --accent-dim: var(--brand-dark);
+
+  /* Signal amber — retained ONLY for semantic "caution / mid / draft" states */
   --amber:     #F59E0B;
   --amber-dim: #92610A;
 
-  /* Trust score colours */
+  /* Trust score colours (traffic-light semantics) */
   --score-high:   #10B981;   /* emerald */
   --score-mid:    #F59E0B;   /* amber */
   --score-low:    #EF4444;   /* red */
@@ -34,8 +45,8 @@
   /* Semantic */
   --bg:         var(--slate-050);
   --bg-card:    #FFFFFF;
-  --bg-sidebar: var(--slate-900);
-  --text-primary:   var(--slate-950);
+  --bg-sidebar: var(--brand-navy);
+  --text-primary:   var(--brand-navy);
   --text-secondary: var(--slate-600);
   --text-muted:     var(--slate-400);
   --border:     var(--slate-100);
@@ -88,20 +99,16 @@ a:hover { text-decoration: underline; }
 }
 
 .brand-mark {
-  width: 30px; height: 30px;
-  background: var(--amber);
-  color: var(--slate-950);
-  border-radius: var(--radius);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.02em;
+  width: 30px; height: 34px;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
 .brand-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.85);
-  letter-spacing: 0.01em;
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFFFFF;
+  letter-spacing: 0.005em;
 }
 
 .nav-links {
@@ -129,8 +136,8 @@ a:hover { text-decoration: underline; }
 }
 
 .nav-link.active {
-  background: rgba(245,158,11,0.15);
-  color: var(--amber);
+  background: rgba(45,123,240,0.18);
+  color: #6FA8F5;
 }
 
 .sidebar-footer {
@@ -210,8 +217,8 @@ a:hover { text-decoration: underline; }
 
 .btn:hover { opacity: 0.85; text-decoration: none; }
 
-.btn-primary  { background: var(--slate-900); color: #fff; }
-.btn-amber    { background: var(--amber);     color: var(--slate-950); }
+.btn-primary  { background: var(--brand-navy); color: #fff; }
+.btn-amber    { background: var(--brand);      color: #fff; }
 .btn-ghost    { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-mid); }
 .btn-danger   { background: #FEF2F2; color: var(--score-low); }
 .btn-sm       { padding: 0.3rem 0.7rem; font-size: 12.5px; }
@@ -249,8 +256,8 @@ textarea {
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: var(--amber);
-  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(30,106,217,0.14);
 }
 
 textarea { resize: vertical; min-height: 100px; }
@@ -306,7 +313,7 @@ tr:hover td { background: var(--slate-050); }
   background: var(--border-mid);
 }
 
-.layer-dot.reached { background: var(--amber); }
+.layer-dot.reached { background: var(--brand); }
 
 /* ── AI draft banner ─────────────────────────────────────────── */
 .ai-draft-banner {
@@ -365,8 +372,8 @@ tr:hover td { background: var(--slate-050); }
     border-bottom: 1px solid rgba(255,255,255,0.08);
   }
   .mobile-bar-brand { display: flex; align-items: center; gap: 0.5rem; }
-  .mobile-bar-brand .brand-mark { width: 26px; height: 26px; font-size: 10px; }
-  .mobile-bar-brand .brand-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); }
+  .mobile-bar-brand .brand-mark { width: 24px; height: 28px; }
+  .mobile-bar-brand .brand-name { font-size: 13px; font-weight: 600; color: #FFFFFF; }
 
   /* Sidebar slides in from the left. */
   .sidebar {
