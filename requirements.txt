@@ -1,31 +1,45 @@
-# Pinned to versions verified working together on Python 3.12.
-# (Earlier pins lagged behind what pip actually installs; these match reality.)
-
-# --- Web framework ---
-fastapi==0.138.0
-uvicorn[standard]==0.49.0
-
-# --- Templating + forms ---
-jinja2==3.1.6
-python-multipart==0.0.32      # required for form parsing in FastAPI
-
-# --- Database ---
-sqlalchemy==2.0.51
-aiosqlite==0.22.1             # async SQLite driver
-alembic==1.13.2              # schema migrations
-
-# --- Auth ---
-PyJWT==2.13.0                      # JWT tokens (replaces python-jose; see security.py)
-bcrypt==5.0.0                      # password hashing (direct, not via passlib)
-
-# --- AI providers ---
-anthropic==0.111.0
-openai==2.43.0
-
-# --- Validation ---
-pydantic==2.13.4
-pydantic-settings==2.14.2     # settings from .env
-
-# --- Utilities ---
-python-dotenv==1.2.2
-httpx==0.28.1                # async HTTP
+aiosqlite==0.20.0
+alembic==1.14.0
+annotated-types==0.7.0
+anthropic==0.40.0
+anyio==4.14.0
+bcrypt==5.0.0
+certifi==2026.6.17
+cffi==2.0.0
+click==8.4.1
+colorama==0.4.6
+cryptography==46.0.3
+distro==1.9.0
+ecdsa==0.19.2
+fastapi==0.115.6
+greenlet==3.5.2
+h11==0.16.0
+httpcore==1.0.9
+httpx==0.27.2
+idna==3.18
+Jinja2==3.1.4
+jiter==0.15.0
+jwt==1.4.0
+Mako==1.3.12
+MarkupSafe==3.0.3
+openai==1.57.0
+packaging==26.2
+passlib==1.7.4
+pyasn1==0.6.3
+pycparser==3.0
+pydantic==2.10.6
+pydantic-settings==2.7.0
+pydantic_core==2.27.2
+PyJWT==2.13.0
+python-dotenv==1.0.1
+python-multipart==0.0.12
+rsa==4.9.1
+setuptools==82.0.1
+six==1.17.0
+sniffio==1.3.1
+SQLAlchemy==2.0.36
+starlette==0.41.3
+tqdm==4.68.3
+typing_extensions==4.15.0
+uvicorn==0.32.1
+wheel==0.47.0
