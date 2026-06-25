@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Settings — Trusted Advisor{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Settings</h1>
+    <p class="page-subtitle">AI configuration and account management</p>
+  </div>
+</div>
+
+{% if ai_success %}
+<div class="flash flash--ok">AI settings saved and applied — no restart needed.</div>
+{% endif %}
+{% if pw_success %}
+<div class="flash flash--ok">Password changed successfully.</div>
+{% endif %}
+{% if ai_error %}
+<div class="flash flash--error">Could not save settings: {{ ai_error }}</div>
+{% endif %}
+{% if pw_error %}
+<div class="flash flash--error">{{ pw_error }}</div>
+{% endif %}
+
+<!-- AI Configuration -->
+<div class="card settings-card">
+  <h2 class="settings-section-title">AI Provider</h2>
+  <p class="settings-section-sub">Controls which model powers debriefs, agendas, and forecasts. Changes apply immediately — no restart needed.</p>
+
+  <form method="post" action="/settings/ai">
+
+    <!-- Provider toggle -->
+    <div class="field">
+      <label>Provider</label>
+      <div class="provider-toggle">
+        <label class="provider-opt {% if provider == 'claude' %}provider-opt--active{% endif %}">
+          <input type="radio" name="llm_provider" value="claude" {% if provider == 'claude' %}checked{% endif %} onchange="this.form.querySelectorAll('.provider-opt').forEach(el=>el.classList.remove('provider-opt--active')); this.closest('.provider-opt').classList.add('provider-opt--active')">
+          <span class="provider-name">Claude</span>
+          <span class="provider-sub">Anthropic — claude-sonnet-4-6</span>
+        </label>
+        <label class="provider-opt {% if provider == 'openai' %}provider-opt--active{% endif %}">
+          <input type="radio" name="llm_provider" value="openai" {% if provider == 'openai' %}checked{% endif %} onchange="this.form.querySelectorAll('.provider-opt').forEach(el=>el.classList.remove('provider-opt--active')); this.closest('.provider-opt').classList.add('provider-opt--active')">
+          <span class="provider-name">OpenAI</span>
+          <span class="provider-sub">GPT-4 family — gpt-4o</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Model strings -->
+    <div class="field-row">
+      <div class="field">
+        <label for="llm_model_claude">Claude model string</label>
+        <input type="text" id="llm_model_claude" name="llm_model_claude" value="{{ model_claude }}" placeholder="claude-sonnet-4-6">
+      </div>
+      <div class="field">
+        <label for="llm_model_openai">OpenAI model string</label>
+        <input type="text" id="llm_model_openai" name="llm_model_openai" value="{{ model_openai }}" placeholder="gpt-4o">
+      </div>
+    </div>
+
+    <!-- API Keys -->
+    <div class="field">
+      <label for="anthropic_api_key">
+        Anthropic API key
+        {% if anthropic_set %}<span class="key-status key-status--ok">configured</span>{% else %}<span class="key-status key-status--warn">not set</span>{% endif %}
+      </label>
+      <input type="password" id="anthropic_api_key" name="anthropic_api_key"
+             value="{{ anthropic_masked }}"
+             placeholder="sk-ant-…  (leave blank to keep existing)"
+             autocomplete="off">
+      <p class="field-hint">Leave unchanged to keep the existing key. Paste a new key to replace it.</p>
+    </div>
+
+    <div class="field">
+      <label for="openai_api_key">
+        OpenAI API key
+        {% if openai_set %}<span class="key-status key-status--ok">configured</span>{% else %}<span class="key-status key-status--warn">not set</span>{% endif %}
+      </label>
+      <input type="password" id="openai_api_key" name="openai_api_key"
+             value="{{ openai_masked }}"
+             placeholder="sk-…  (leave blank to keep existing)"
+             autocomplete="off">
+      <p class="field-hint">Leave unchanged to keep the existing key. Paste a new key to replace it.</p>
+    </div>
+
+    <div class="settings-actions">
+      <button type="submit" class="btn btn-primary">Save AI settings</button>
+    </div>
+  </form>
+</div>
+
+<!-- Account -->
+<div class="card settings-card">
+  <h2 class="settings-section-title">Account</h2>
+  <p class="settings-section-sub">Signed in as <strong>{{ user.username }}</strong> &mdash; {{ user.email }}</p>
+
+  <form method="post" action="/settings/password">
+    <div class="field">
+      <label for="current_password">Current password</label>
+      <input type="password" id="current_password" name="current_password" required autocomplete="current-password">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="new_password">New password</label>
+        <input type="password" id="new_password" name="new_password" required autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="confirm_password">Confirm new password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required autocomplete="new-password">
+      </div>
+    </div>
+    <div class="settings-actions">
+      <button type="submit" class="btn btn-ghost">Change password</button>
+    </div>
+  </form>
+</div>
+
+<style>
+  .settings-card { max-width: 680px; margin-bottom: 1.25rem; }
+  .settings-section-title { font-size: 1rem; font-weight: 600; color: var(--brand-navy); margin-bottom: 0.2rem; }
+  .settings-section-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 1.25rem; }
+  .settings-actions { margin-top: 1.25rem; }
+
+  .flash { padding: 0.7rem 1rem; border-radius: var(--radius); font-size: 13.5px; margin-bottom: 1rem; max-width: 680px; }
+  .flash--ok    { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+  .flash--error { background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA; }
+
+  .provider-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .provider-opt { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.85rem 1rem; border: 2px solid var(--border-mid); border-radius: var(--radius-lg); cursor: pointer; transition: border-color 0.12s, background 0.12s; }
+  .provider-opt input[type=radio] { display: none; }
+  .provider-opt--active { border-color: var(--brand); background: #EFF5FF; }
+  .provider-name { font-size: 14px; font-weight: 600; color: var(--brand-navy); }
+  .provider-sub { font-size: 12px; color: var(--text-muted); }
+
+  .key-status { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.1rem 0.45rem; border-radius: 100px; margin-left: 0.4rem; }
+  .key-status--ok   { background: #ECFDF5; color: #065F46; }
+  .key-status--warn { background: #FFFBEB; color: var(--amber-dim); }
+
+  .field-hint { font-size: 12px; color: var(--text-muted); margin-top: 0.3rem; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+  @media (max-width: 600px) {
+    .provider-toggle, .field-row { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}

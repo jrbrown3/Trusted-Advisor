@@ -143,7 +143,37 @@ a:hover { text-decoration: underline; }
 .sidebar-footer {
   padding-top: 1rem;
   border-top: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  gap: 4px;
 }
+
+/* Icon buttons in the sidebar footer (settings + sign-out) */
+.icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: var(--radius);
+  color: rgba(255,255,255,0.45);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.12s, color 0.12s;
+  text-decoration: none;
+  flex: 1;
+}
+.icon-btn:hover, .icon-btn.active {
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.88);
+  text-decoration: none;
+}
+.icon-btn.active {
+  background: rgba(45,123,240,0.18);
+  color: #6FA8F5;
+}
+.icon-btn svg { flex-shrink: 0; }
+.icon-btn-label { font-size: 12.5px; }
 
 /* ── Main content ────────────────────────────────────────────── */
 .main-content {

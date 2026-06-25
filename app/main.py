@@ -25,7 +25,7 @@ from app.database import engine, Base
 import app.models  # noqa: F401
 
 # Routers (stubs for now — filled in per phase)
-from app.routers import auth, setup, contacts, interactions, insights, actions, dashboard
+from app.routers import auth, setup, contacts, interactions, insights, actions, dashboard, settings_router
 from app.dependencies import RequiresSetup, RequiresLogin
 
 
@@ -74,6 +74,7 @@ app.include_router(interactions.router, prefix="/interactions", tags=["interacti
 app.include_router(insights.router,     prefix="/insights",     tags=["insights"])
 app.include_router(actions.router,      prefix="/actions",      tags=["actions"])
 app.include_router(dashboard.router,                            tags=["dashboard"])
+app.include_router(settings_router.router, prefix="/settings",  tags=["settings"])
 
 
 # ── Root is served by the dashboard router (GET /) ───────────
